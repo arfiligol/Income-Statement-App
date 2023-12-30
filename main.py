@@ -5,7 +5,7 @@ from tkinter import filedialog, messagebox
 from sqlalchemy import create_engine, Column, String
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.exc import IntegrityError
-
+from models.worksheet import SeprateAccountsWorksheet
 
 def open_file():
     global selected_file_name
@@ -54,7 +54,10 @@ def insert_unique_codes(code_list, db_file):
     # 關閉 Session
     session.close()
 
-def separte_the_ledger(excel_filename):
+# def copyWorksheetStyle(source_sheet, destinate_sheet): # 直接給 openpyxl 的 sheet object
+    
+
+def separate_the_ledger(excel_filename, tk_root):
     print(f"Start Handling the Excel File: {excel_filename}")
     xls = pd.ExcelFile(excel_filename)
     sheet_names = xls.sheet_names
@@ -85,10 +88,8 @@ def separte_the_ledger(excel_filename):
             date = row[0] # 日期
             if (pd.isna(date)):
                 continue
-            print(f"date: {date}")
             abstract = row[1] # 摘要
             debit = row[2] # 借方金額
-            print(f"Debit: {debit}")
             credit = row[3] # 貸方金額
             debit_or_credit = row[4] # 借 or 貸
             balance = row[5]
@@ -103,8 +104,12 @@ def separte_the_ledger(excel_filename):
             for code in filtered_code_list:
                 data.append([date, abstract, float(debit), float(credit) / len(filtered_code_list), code])
 
-    df = pd.DataFrame(data, columns = ["日期", "摘要", "借方金額", "貸方金額", "承辦律師"])
-    df.to_excel("output.xlsx", index = False)
+    print(data)
+    target_sheet = SeprateAccountsWorksheet("output2.xlsx", tk_root)
+    target_sheet.write_data_to_worksheet(data)
+    return data
+
+
 
 
 root = tk.Tk()
@@ -116,7 +121,7 @@ open_file_button.pack(pady=10)
 file_label = tk.Label(root, text="尚未選擇檔案")
 file_label.pack(pady=10)
 
-confirm_button = tk.Button(root, text="確認", command=lambda:separte_the_ledger(selected_file_name))
+confirm_button = tk.Button(root, text="確認", command=lambda:separate_the_ledger(selected_file_name, root))
 confirm_button.pack(pady=10)
 
 root.mainloop()
