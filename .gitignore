@@ -1,2 +1,7 @@
 *.xls
 *.xlsx
+
+# pyinstaller
+build
+dist
+*.spec

@@ -4,7 +4,7 @@ from openpyxl.styles import Font, Border, Side, Alignment
 import tkinter as tk
 from tkinter import messagebox
 
-class SeprateAccountsWorksheet:
+class SeparateAccountsWorksheet:
     def __init__(self, workbook_path, tk_root):
         if not os.path.exists(workbook_path):
             self.wb = Workbook()

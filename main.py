@@ -5,7 +5,7 @@ from tkinter import filedialog, messagebox
 from sqlalchemy import create_engine, Column, String
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.exc import IntegrityError
-from models.worksheet import SeprateAccountsWorksheet
+from models.worksheet import SeparateAccountsWorksheet
 
 def open_file():
     global selected_file_name
@@ -105,7 +105,7 @@ def separate_the_ledger(excel_filename, tk_root):
                 data.append([date, abstract, float(debit), float(credit) / len(filtered_code_list), code])
 
     print(data)
-    target_sheet = SeprateAccountsWorksheet("output2.xlsx", tk_root)
+    target_sheet = SeparateAccountsWorksheet("output2.xlsx", tk_root)
     target_sheet.write_data_to_worksheet(data)
     return data
 
