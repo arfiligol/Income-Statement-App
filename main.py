@@ -3,6 +3,9 @@ import pandas as pd
 import tkinter as tk
 from tkinter import filedialog, messagebox
 
+# Controllers
+from controllers import MainController
+
 # Application Models
 from models.worksheets import SeparateAccountsWorksheet
 
@@ -105,19 +108,20 @@ def run():
     setup_logger()
 
     session = get_session()
-    root = tk.Tk()
-    root.geometry("400x200")
+    main_view_controller = MainController()
 
-    open_file_button = tk.Button(root, text="選擇檔案", command=open_file)
-    open_file_button.pack(pady=10)
 
-    file_label = tk.Label(root, text="尚未選擇檔案")
-    file_label.pack(pady=10)
+    # root.geometry("400x200")
 
-    confirm_button = tk.Button(root, text="確認", command=lambda:separate_the_ledger(selected_file_name, root))
-    confirm_button.pack(pady=10)
+    # open_file_button = tk.Button(root, text="選擇檔案", command=open_file)
+    # open_file_button.pack(pady=10)
 
-    root.mainloop()
+    # file_label = tk.Label(root, text="尚未選擇檔案")
+    # file_label.pack(pady=10)
+
+    # confirm_button = tk.Button(root, text="確認", command=lambda:separate_the_ledger(selected_file_name, root))
+    # confirm_button.pack(pady=10)
+
 
 
 if __name__ == "__main__":
