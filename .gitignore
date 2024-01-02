@@ -5,3 +5,6 @@
 build
 dist
 *.spec
+
+# python
+__pycache__
