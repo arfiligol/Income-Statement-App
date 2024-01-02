@@ -1,10 +1,11 @@
 import os
+from abc import ABC, abstractclassmethod
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, Border, Side, Alignment
 import tkinter as tk
 from tkinter import messagebox
 
-class BaseWorksheet:
+class BaseWorksheet(ABC):
     def __init__(self, workbook_path, sheet_title, tk_root = None):
         self.workbook_path = workbook_path
         self.sheet_title = sheet_title
@@ -65,10 +66,12 @@ class BaseWorksheet:
                 print(f"無法儲存變更到檔案名稱{filename}", f"請確認目標檔案'{filename}'是否已經關閉，若透過其他程式開啟該檔案，則無法在此程式更改該檔案！")
                 print(err)
 
+    @abstractclassmethod
     def format_worksheet(self):
         # 省略原有 format_worksheet 內容
         pass
 
+    @abstractclassmethod
     def write_data_to_worksheet(self, data_rows):
         # 省略原有 write_data_to_worksheet 內容
         pass
