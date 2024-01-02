@@ -6,3 +6,5 @@ SQLAlchemy
 Jupyter
 openpyxl
 xlrd
+python-dotenv
+colorlog
