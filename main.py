@@ -7,6 +7,7 @@ from tkinter import filedialog, messagebox
 from models.worksheets import SeparateAccountsWorksheet
 
 # CRUD
+from db.database import get_session
 from db.crud.lawyer import insert_unique_lawyers, fetch_all_lawyers
 
 # Utils
@@ -25,7 +26,7 @@ def open_file():
                 continue
 
             selected_file_name = filename
-            file_label.config(text=f"選擇的檔案: {filename}")
+            # file_label.config(text=f"選擇的檔案: {filename}")
             file_is_not_selected = False
         else: # 如果按取消
             break    
@@ -78,7 +79,7 @@ def separate_the_ledger(excel_filename, tk_root):
                 data.append([date, abstract, float(debit), float(credit) / len(filtered_code_list), code])
 
     print(data)
-    target_sheet = SeparateAccountsWorksheet("output2.xlsx", tk_root)
+    target_sheet = SeparateAccountsWorksheet("data/output2.xlsx", tk_root)
     target_sheet.write_data_to_worksheet(data)
     
     # 取出所有 Lawyer Code，進行遍歷
@@ -103,7 +104,7 @@ def run():
     # 初始化 logger
     setup_logger()
 
-
+    session = get_session()
     root = tk.Tk()
     root.geometry("400x200")
 

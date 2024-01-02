@@ -1,16 +1,28 @@
+import os
+from dotenv import load_dotenv
+import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base
-from dotenv import load_dotenv
-import os
+
+
+from .models import Base
+
 
 load_dotenv()
 
 def get_session():
-    db_file = os.getenv("DATABASE_URL")
-    if not (db_file):
-        db_file = "sqlite_db"
-    engine = create_engine(f"sqlite:///{db_file}")
+    # sqlite db path
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    db_filename = os.getenv("DATABASE_FILENAME", "sqlite_db.db")
+    db_dir = os.path.join(base_dir, "data", "db")
+    db_file_path = os.path.join(db_dir, db_filename)
+    # 檢查目錄是否存在，如果不存在則創建
+    if not os.path.exists(db_dir):
+        logging.info("偵測到 SQLite 資料庫目錄不存在，自動創建...")
+        os.makedirs(db_dir)
+    
+    # db connection
+    engine = create_engine(f"sqlite:///{db_file_path}")
     Base.metadata.create_all(engine)
 
     # sessionmaker 是 SQLAlchemy 的一個工廠函數，用於創建 Session 對象，這些對象代表了程序與數據庫的一次對話。
