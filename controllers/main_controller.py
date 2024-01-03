@@ -7,6 +7,7 @@ from .base import BaseController
 from views import MainView
 from db.crud.lawyer import insert_unique_lawyers, fetch_all_lawyers
 from models.worksheets import SeparateAccountsWorksheet
+from utils import check_filename_is_valid
 
 class MainController(BaseController):
     def __init__(self):
@@ -16,6 +17,7 @@ class MainController(BaseController):
 
         # Attributes
         self.selected_file_name = None
+        self.output_dir = None
 
     
     def open_excel_file(self):
@@ -23,7 +25,6 @@ class MainController(BaseController):
         while (file_is_not_selected):
             logging.debug("正在詢問用戶要開啟的檔案...")
             filename = filedialog.askopenfilename()
-
 
             if (filename): # 確定有選擇檔案
                 # 檢查副檔名是否與 Excel 相關
@@ -40,7 +41,39 @@ class MainController(BaseController):
                 logging.debug("用戶取消選擇檔案！")
                 break
     
+    def choose_output_dir(self):
+        folder_is_not_selected = True
+        while (folder_is_not_selected):
+            logging.debug("正在詢問用戶輸出檔案的資料夾...")
+            folder_path = filedialog.askdirectory()
+
+            if (folder_path):
+                logging.info(f"用戶選擇輸出位置: {folder_path}")
+                self.output_dir = folder_path
+                self.window.labels["OutputDirPathLabel"].config(text = folder_path)
+                folder_is_not_selected = False
+            
+            else:
+                break
+    
     def separate_the_ledger(self):
+        # 先檢查【輸出資料夾】是否有給，若無輸出檔名，預設為【output.xlsx】
+        if (self.output_dir == None):
+            messagebox.showerror("錯誤", "請先選擇要輸出的資料夾！")
+            return
+        
+        output_file_name = self.window.entries["OutputFileNameEntry"].get()
+        if (output_file_name == "輸入輸出檔名" or output_file_name.replace(" ", "") == ""): # 如果移除所有空格為空 => 無名稱
+            messagebox.showinfo("說明", "沒有給予輸出檔名，將使用 'output' 作為檔名")
+            output_file_name = "output"
+        elif (check_filename_is_valid(output_file_name)):
+            messagebox.showerror("錯誤", "輸出檔名包含不合法字元")
+            return
+        output_file_name = self.output_dir + "/" + output_file_name + ".xlsx"
+        logging.info(f"資料將儲存於: {output_file_name}")
+            
+
+
         logging.info(f"開始處理檔案: {self.selected_file_name}, 執行動作: 'separate_the_ledger()'")
         xls = pd.ExcelFile(self.selected_file_name)
         sheet_names = xls.sheet_names
@@ -86,8 +119,7 @@ class MainController(BaseController):
                 for code in filtered_code_list:
                     data.append([date, abstract, float(debit), float(credit) / len(filtered_code_list), code])
 
-        print(data)
-        target_sheet = SeparateAccountsWorksheet("data/output2.xlsx", self)
+        target_sheet = SeparateAccountsWorksheet(output_file_name, self)
         target_sheet.write_data_to_worksheet(data)
         
         # 取出所有 Lawyer Code，進行遍歷
@@ -103,5 +135,3 @@ class MainController(BaseController):
                 "lawyer_code": lawyer.code,
                 "total_credit": total_credit,
             })
-        
-        print(lawyer_credits)        

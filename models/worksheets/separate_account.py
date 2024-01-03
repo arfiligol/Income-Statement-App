@@ -98,7 +98,6 @@ class SeparateAccountsWorksheet:
         # 開始寫入資料到工作表
         for row_index, row in enumerate(data_rows, start=0): # 因為 first_empty_row 會設為最新空格，因此 row_index 從 0 開始
             for column_index in range(0, len(self.headers), 1): # column 從零開始算
-                print(column_index)
                 cell = self.ws[first_empty_row + row_index][column_index]
                 cell.value = row[column_index]
                 
