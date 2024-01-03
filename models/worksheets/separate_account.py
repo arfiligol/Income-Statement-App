@@ -3,9 +3,13 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, Border, Side, Alignment
 import tkinter as tk
 from tkinter import messagebox
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from views import MainView
 
 class SeparateAccountsWorksheet:
-    def __init__(self, workbook_path, tk_root):
+    def __init__(self, workbook_path, tk_root: "MainView"):
         if not os.path.exists(workbook_path):
             self.wb = Workbook()
             self.is_new_workbook = True
