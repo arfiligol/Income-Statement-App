@@ -8,3 +8,7 @@ openpyxl
 xlrd
 python-dotenv
 colorlog
+pyupdater
+
+quart
+poetry
