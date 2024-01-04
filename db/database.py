@@ -1,4 +1,5 @@
 import os
+import sys
 from dotenv import load_dotenv
 import logging
 from sqlalchemy import create_engine
@@ -12,13 +13,18 @@ load_dotenv()
 
 def get_session():
     # sqlite db path
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    # 如果是使用 PyInstaller 打包的，_MEIPASS 環境變量會存在'
+    if getattr(sys, "frozen", False):
+        base_dir = os.path.dirname(sys.executable) # 使用執行檔執行時的臨時目錄路徑作為 base_dir
+    else:
+        base_dir =  os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     db_filename = os.getenv("DATABASE_FILENAME", "sqlite_db.db")
     db_dir = os.path.join(base_dir, "data", "db")
     db_file_path = os.path.join(db_dir, db_filename)
     # 檢查目錄是否存在，如果不存在則創建
     if not os.path.exists(db_dir):
         logging.info("偵測到 SQLite 資料庫目錄不存在，自動創建...")
+        logging.info(f"DB 路徑: {db_dir}")
         os.makedirs(db_dir)
     
     # db connection
