@@ -90,7 +90,8 @@ class MainController(BaseController):
             return
         
         data = []
-
+        total_debit = 0
+        total_credit = 0
         ready_for_data = False
         for row in origin_array:
             if row[9] != "備註" and not ready_for_data:
@@ -100,6 +101,7 @@ class MainController(BaseController):
                 continue
             
             if (ready_for_data):
+                # 取資料做處理
                 date = row[0] # 日期
                 if (pd.isna(date)):
                     continue
@@ -108,30 +110,58 @@ class MainController(BaseController):
                 credit = row[3] # 貸方金額
                 debit_or_credit = row[4] # 借 or 貸
                 balance = row[5]
-                remark = row[9]
+                department = row[8] # 部門
+                remark = row[9] # 用來解析
 
+                # 將律師代碼拆分，並寫入資料庫
                 lawyer_code_list = remark.split(' ')
                 # 移除空元素
                 filtered_code_list = [item for item in lawyer_code_list if item]
                 insert_unique_lawyers(filtered_code_list) # 將 Lawyer 寫入資料庫紀錄
+
+                # 處理金額，若為 Nan 則視為零元
+                if (pd.isna(debit)):
+                    debit = 0
+                if (pd.isna(credit)):
+                    credit = 0
+
+                # 總計整張表的 debit 跟 credit
                 
                 # 有幾個 Lawyer 就拆分成幾筆資料
                 for code in filtered_code_list:
-                    data.append([date, abstract, float(debit), float(credit) / len(filtered_code_list), code])
+                    # 金額四捨五入至整數（元）
+                    separate_debit = round(float(debit) / len(filtered_code_list))
+                    separate_credit = round(float(credit) / len(filtered_code_list))
+                    # 統計整張表的數值
+                    total_debit += separate_debit
+                    total_credit += separate_credit
 
-        target_sheet = SeparateAccountsWorksheet(output_file_name, self)
-        target_sheet.write_data_to_worksheet(data)
-        
-        # 取出所有 Lawyer Code，進行遍歷
-        lawyer_credits = []
-        lawyers = fetch_all_lawyers()
-        for lawyer in lawyers:
-            total_credit = 0
-            for row in data:
-                if (row[4] == lawyer.code):
-                    total_credit += row[3]
+                    data.append([date, abstract, department, separate_debit, separate_credit, code]) 
+
+
+        try:
+            target_sheet = SeparateAccountsWorksheet(output_file_name, self)
+            target_sheet.write_data_to_worksheet(data, total_debit=total_debit, total_credit=total_credit) # 寫入分帳
             
-            lawyer_credits.append({
-                "lawyer_code": lawyer.code,
-                "total_credit": total_credit,
-            })
+            # 取出所有 Lawyer Code，進行遍歷
+            lawyer_credits = []
+            lawyers = fetch_all_lawyers()
+            for lawyer in lawyers:
+                lawyer_total_credit = 0
+                for row in data:
+                    if (row[4] == lawyer.code):
+                        lawyer_total_credit += row[3]
+                
+                lawyer_credits.append({
+                    "lawyer_code": lawyer.code,
+                    "lawyer_total_credit": lawyer_total_credit,
+                })
+
+
+            # 都沒問題，處理完畢，用 Label 告知使用者
+            hintLabel = self.window.labels["DealingWorkIsDoneLabel"]
+            hintLabel.config(text = "處理完畢")
+            hintLabel.grid(row = 4, column = 1, pady = 10)
+        except Exception as err:
+            messagebox.showerror("寫入資料時發生錯誤", "請聯繫管理員！")
+            logging.error(f"寫入資料到 'SeparateAccountsWorksheet' 時發生錯誤... Error: {err}")

@@ -33,7 +33,8 @@ class MainView(tk.Tk):
         self.labels = {}
         label_texts = { # 有添加 Label 需求，請在這裡添加 Key-Value Pair
             "OpenedFilePathLabel": "尚未選擇檔案",
-            "OutputDirPathLabel": "尚未選擇輸出資料夾"
+            "OutputDirPathLabel": "尚未選擇輸出資料夾",
+            "DealingWorkIsDoneLabel": "",
         }
 
         for label_name, text in label_texts.items():
