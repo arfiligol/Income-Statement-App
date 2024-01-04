@@ -160,7 +160,7 @@ class MainController(BaseController):
 
             # 都沒問題，處理完畢，用 Label 告知使用者
             hintLabel = self.window.labels["DealingWorkIsDoneLabel"]
-            hintLabel.config(text = "處理完畢")
+            hintLabel.config(text = f"處理完畢，檔案已寫入到路徑: {output_file_name}")
             hintLabel.grid(row = 4, column = 1, pady = 10)
         except Exception as err:
             messagebox.showerror("寫入資料時發生錯誤", "請聯繫管理員！")
