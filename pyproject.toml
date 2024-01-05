@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "momshelperquart", from = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11,<3.13"
 Quart = "^0.19.4"
 quart-schema = "^0.18.0"
 PyUpdater = "^4.0"
@@ -22,6 +22,7 @@ tox = "^4.11.4"
 
 [tool.poetry.group.dev.dependencies]
 pytest-asyncio = "^0.23.3"
+pyinstaller = "^6.3.0"
 
 [build-system]
 requires = ["poetry-core"]
