@@ -1,0 +1,15 @@
+# data
+*.xls
+*.xlsx
+
+# pyinstaller
+build
+dist
+*.spec
+
+# python
+__pycache__/
+/__pycache__/
+
+# virtual environment
+.venv
