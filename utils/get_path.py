@@ -3,7 +3,7 @@ import sys
 import os
 from pathlib import Path
 
-def get_root_dir_path() -> str:
+def get_root_dir_path() -> Path:
     # 如果是使用 PyInstaller 打包後執行的情境，回傳執行檔執行時的資料夾作為根目錄
     if getattr(sys, 'frozen', False):
         root_dir = os.path.dirname(sys.executable)

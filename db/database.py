@@ -15,13 +15,12 @@ def get_session():
     # sqlite db path
     base_dir = get_root_dir_path()
     db_filename = os.getenv("DATABASE_FILENAME", "sqlite_db.db")
-    db_dir = os.path.join(base_dir, "data", "db")
-    db_file_path = os.path.join(db_dir, db_filename)
+    db_dir = base_dir / "data" / "db"
+    db_file_path = db_dir / db_filename
     # 檢查目錄是否存在，如果不存在則創建
-    if not os.path.exists(db_dir):
-        logging.info("偵測到 SQLite 資料庫目錄不存在，自動創建...")
-        logging.info(f"DB 路徑: {db_dir}")
-        os.makedirs(db_dir)
+    db_dir.mkdir(parents=True, exist_ok=True)
+    logging.info(f"SQLite 資料庫目錄確認存在或已創建於：{db_dir}")
+
     
     # db connection
     engine = create_engine(f"sqlite:///{db_file_path}")
