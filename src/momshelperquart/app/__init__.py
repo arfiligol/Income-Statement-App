@@ -13,5 +13,8 @@ def create_app() -> Quart:
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
 
+    from .lawyer_income_detail import lawyer_income_detail as lawyer_income_detail_blueprint # 律師收入明細 -> 程式處理後的第一個工作表(第一個功能)
+    app.register_blueprint(lawyer_income_detail_blueprint, url_prefix = "/lawyer_income_detail")
+
 
     return app

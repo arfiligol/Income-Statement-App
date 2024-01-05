@@ -1,0 +1,13 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+nav {
+    background-color: #f0f0f0;
+    padding: 10px;
+    text-align: center;
+}
+
+main {
+    margin: 20px;
+}

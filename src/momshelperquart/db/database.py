@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 
 from .models import Base
-from utils.get_path import get_root_dir_path
+from momshelperquart.utils.get_path import get_root_dir_path
 
 load_dotenv()
 
