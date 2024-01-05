@@ -11,3 +11,12 @@ nav {
 main {
     margin: 20px;
 }
+
+input[type="file"] {
+    margin: 15px;
+}
+
+input[type="submit"], button#process-btn {
+    margin: 5px;
+    padding: 5px 10px;
+}

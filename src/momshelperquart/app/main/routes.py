@@ -1,5 +1,6 @@
 import logging
-from quart import render_template
+from quart import render_template, g
+
 
 from . import main
 

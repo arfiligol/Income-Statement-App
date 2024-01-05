@@ -5,5 +5,10 @@ Lawyer Income Detail
 {% endblock %}
 
 {% block content %}
-<h1>Welcome to the Lawyer Income Detail Page</h1>
+<h1>Lawyer Income Detail Page</h1>
+<form action="{{ url_for('lawyer_income_detail.upload_file')}}" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" accept=".xlsx, .xls">
+    <input type="submit" value="Upload Excel File">
+</form>
+<button id="process-btn">處理文件</button>
 {% endblock %}

@@ -1,10 +1,16 @@
 from quart import Quart
+from quart_session import Session
+
 from .config import Config
 
 def create_app() -> Quart:
 
     # 傳遞 __name__ 的主要目的是為了確定應用的根目錄位置， __name__ 是 Python 的一個內置變量，他表示當前模塊的名稱
     app = Quart(__name__)
+    
+    # 替 App 加入 Session
+    app.config["SESSION_TYPE"] = "redis" # 使用文件系統儲存 session
+    Session(app)
 
     # 註冊 Config
     app.config.from_object(Config)
