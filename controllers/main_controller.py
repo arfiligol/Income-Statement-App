@@ -2,6 +2,7 @@ import logging
 import os
 import pandas as pd
 from tkinter import filedialog, messagebox
+import ttkbootstrap as ttk
 
 from .base import BaseController
 from views import MainView
@@ -12,12 +13,15 @@ from utils import check_filename_is_valid
 class MainController(BaseController):
     def __init__(self):
         super().__init__()
-        self.window:MainView = MainView(self)
-        self.window.mainloop()
 
         # Attributes
         self.selected_file_name = None
         self.output_dir = None
+        self.output_filename = None
+
+        # Create Window
+        self.window:MainView = MainView(self)
+        self.window.mainloop()
 
     
     def open_excel_file(self):
@@ -50,9 +54,8 @@ class MainController(BaseController):
             if (folder_path):
                 logging.info(f"用戶選擇輸出位置: {folder_path}")
                 self.output_dir = folder_path
-                self.window.labels["OutputDirPathLabel"].config(text = folder_path)
                 folder_is_not_selected = False
-            
+                return folder_path
             else:
                 break
     
@@ -62,7 +65,7 @@ class MainController(BaseController):
             messagebox.showerror("錯誤", "請先選擇要輸出的資料夾！")
             return
         
-        output_file_name = self.window.entries["OutputFileNameEntry"].get()
+        output_file_name = self.output_filename.get()
         if (output_file_name == "輸入輸出檔名" or output_file_name.replace(" ", "") == ""): # 如果移除所有空格為空 => 無名稱
             messagebox.showinfo("說明", "沒有給予輸出檔名，將使用 'output' 作為檔名")
             output_file_name = "output"

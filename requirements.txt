@@ -12,3 +12,5 @@ pyupdater
 
 quart
 poetry
+ttkbootstrap
+pillow
