@@ -1,5 +1,0 @@
-
-
-
-class Config:
-    DEBUG = True
