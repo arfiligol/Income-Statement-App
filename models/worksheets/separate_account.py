@@ -49,7 +49,7 @@ class SeparateAccountsWorksheet(BaseWorksheet):
         first_empty_row = self.ws.max_row + 1
         # 檢測是否有資料
         if (first_empty_row != 3):
-            overWriteOldData = messagebox.askyesno("偵測到工作表'程式RUN後檔案'已有資料，是否覆寫？")
+            overWriteOldData = messagebox.askyesno("問題", "偵測到工作表'程式RUN後檔案'已有資料，是否覆寫？")
             if overWriteOldData:
                 # 若決定覆寫，將數據寫入第一行設在 row = 2
                 first_empty_row = 3

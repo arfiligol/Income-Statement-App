@@ -136,9 +136,6 @@ class Gradebook(ttk.Frame):
         table.pack(fill=BOTH, expand=YES, padx=10, pady=10)
         return table
 
-    def update_table(tableview, new_data):
-        """
-        Update Table's cell data"""
 
 if __name__ == "__main__":
     app = ttk.Window("Gradebook", "superhero", resizable=(False, False))

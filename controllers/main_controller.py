@@ -17,8 +17,6 @@ class MainController(BaseController):
         # Attributes
         self.selected_file_name = None
         self.output_dir = None
-        self.output_filename = None
-
         # Create Window
         self.window:MainView = MainView(self)
         self.window.mainloop()
@@ -38,8 +36,8 @@ class MainController(BaseController):
                 else:
                     logging.info(f"用戶選擇檔案: {filename}")
                     self.selected_file_name = filename
-                    self.window.labels["OpenedFilePathLabel"].config(text = filename)
                     file_is_not_selected = False
+                    return filename
             
             else: # 用戶案取消
                 logging.debug("用戶取消選擇檔案！")
@@ -65,7 +63,7 @@ class MainController(BaseController):
             messagebox.showerror("錯誤", "請先選擇要輸出的資料夾！")
             return
         
-        output_file_name = self.output_filename.get()
+        output_file_name = self.window.output_filename.get()
         if (output_file_name == "輸入輸出檔名" or output_file_name.replace(" ", "") == ""): # 如果移除所有空格為空 => 無名稱
             messagebox.showinfo("說明", "沒有給予輸出檔名，將使用 'output' 作為檔名")
             output_file_name = "output"
@@ -162,9 +160,7 @@ class MainController(BaseController):
 
 
             # 都沒問題，處理完畢，用 Label 告知使用者
-            hintLabel = self.window.labels["DealingWorkIsDoneLabel"]
-            hintLabel.config(text = f"處理完畢，檔案已寫入到路徑: {output_file_name}")
-            hintLabel.grid(row = 4, column = 1, pady = 10)
+            self.window.proccess_hint_text.set("處理完畢！")
         except Exception as err:
             messagebox.showerror("寫入資料時發生錯誤", "請聯繫管理員！")
             logging.error(f"寫入資料到 'SeparateAccountsWorksheet' 時發生錯誤... Error: {err}")
