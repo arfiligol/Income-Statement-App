@@ -1,12 +1,17 @@
+from __future__ import annotations
+
 import os
-from abc import ABC, abstractclassmethod
-from openpyxl import Workbook, load_workbook
-from openpyxl.styles import Font, Border, Side, Alignment
+from abc import ABC, abstractmethod
+from typing import Optional, Sequence
+
 import tkinter as tk
+from openpyxl import Workbook, load_workbook
+from openpyxl.worksheet.worksheet import Worksheet
 from tkinter import messagebox
 
+
 class BaseWorksheet(ABC):
-    def __init__(self, workbook_path, sheet_title, tk_root = None):
+    def __init__(self, workbook_path: str, sheet_title: str, tk_root: Optional[tk.Misc] = None) -> None:
         self.workbook_path = workbook_path
         self.sheet_title = sheet_title
         self.root = tk_root
@@ -18,11 +23,12 @@ class BaseWorksheet(ABC):
             self.is_new_workbook = False
             self.wb = load_workbook(workbook_path)
 
+        self.ws: Worksheet
         self.init_ws()
 
-    def init_ws(self):
+    def init_ws(self) -> None:
         # 如果是新建 Workbook 而有預設建立的工作表，刪除它
-        if self.is_new_workbook:
+        if self.is_new_workbook and "Sheet" in self.wb.sheetnames:
             self.wb.remove(self.wb["Sheet"])
 
         # 如果目標工作表存在則使用它，否則創建一個新的工作表
@@ -38,7 +44,11 @@ class BaseWorksheet(ABC):
                     # 使用已有的工作表
                     self.ws = self.wb[self.sheet_title]
             else:
-                response = input(f"工作表 '{self.sheet_title}' 已存在，你想要覆蓋它嗎？(Yes/No, Default: No, Only 'Yes' acceptable.)")
+                response = input(
+                    "工作表 '{0}' 已存在，你想要覆蓋它嗎？(Yes/No, Default: No, Only 'Yes' acceptable.)".format(
+                        self.sheet_title
+                    )
+                )
                 if response == "Yes":
                     # 刪除創建新的
                     self.wb.remove(self.wb[self.sheet_title])
@@ -50,28 +60,32 @@ class BaseWorksheet(ABC):
         else: # 沒有該工作表，直接創建一個新的
             self.create_worksheet()
 
-    def create_worksheet(self):
+    def create_worksheet(self) -> None:
         self.ws = self.wb.create_sheet(self.sheet_title)
         self.format_worksheet()
         self.save(self.workbook_path)
 
-    def save(self, filename):
+    def save(self, filename: str) -> None:
         try:
             self.wb.save(filename)
     
         except PermissionError as err:
             if self.root:
-                messagebox.showerror(f"無法儲存變更到檔案名稱{filename}", f"請確認目標檔案'{filename}'是否已經關閉，若透過其他程式開啟該檔案，則無法在此程式更改該檔案！")
+                messagebox.showerror(
+                    f"無法儲存變更到檔案名稱{filename}",
+                    f"請確認目標檔案'{filename}'是否已經關閉，若透過其他程式開啟該檔案，則無法在此程式更改該檔案！",
+                )
             else:
-                print(f"無法儲存變更到檔案名稱{filename}", f"請確認目標檔案'{filename}'是否已經關閉，若透過其他程式開啟該檔案，則無法在此程式更改該檔案！")
+                print(
+                    f"無法儲存變更到檔案名稱{filename}",
+                    f"請確認目標檔案'{filename}'是否已經關閉，若透過其他程式開啟該檔案，則無法在此程式更改該檔案！",
+                )
                 print(err)
 
-    @abstractclassmethod
-    def format_worksheet(self):
-        # 省略原有 format_worksheet 內容
-        pass
+    @abstractmethod
+    def format_worksheet(self) -> None:
+        """格式化工作表外觀。"""
 
-    @abstractclassmethod
-    def write_data_to_worksheet(self, data_rows):
-        # 省略原有 write_data_to_worksheet 內容
-        pass
+    @abstractmethod
+    def write_data_to_worksheet(self, data_rows: Sequence[Sequence[object]], **kwargs: object) -> None:
+        """將資料寫入工作表。"""

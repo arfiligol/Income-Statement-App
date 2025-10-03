@@ -1,11 +1,14 @@
+from __future__ import annotations
+
 import logging
+import os
+
 from colorlog import ColoredFormatter
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
 
-def setup_logger():
+def setup_logger() -> None:
     # 獲取日誌級別的環境變數，如果讀取到的值沒有對應級別，設為 DEBUG LEVEL
     log_level_str = os.getenv("LOGGER_LEVEL", "DEBUG")
     log_level = getattr(logging, log_level_str.upper(), logging.DEBUG)
