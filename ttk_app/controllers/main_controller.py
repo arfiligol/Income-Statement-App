@@ -3,15 +3,18 @@ from __future__ import annotations
 import logging
 import os
 from tkinter import filedialog, messagebox
-from typing import List, Optional, Tuple
+from typing import List, Optional, Sequence, Tuple
 
 import pandas as pd
+from openpyxl import load_workbook
+from openpyxl.worksheet.worksheet import Worksheet
 from pandas import DataFrame
 
-from db.crud.lawyer import fetch_all_lawyers, insert_unique_lawyers
-from models.worksheets import SeparateAccountsWorksheet
-from utils import check_filename_is_valid
-from views import MainView
+from ttk_app.db.crud.lawyer import fetch_all_lawyers, insert_unique_lawyers
+from ttk_app.models.worksheets import SeparateAccountsWorksheet
+from ttk_app.utils import check_filename_is_valid
+from ttk_app.views import MainView
+from ttk_app.views.custom_widgets import LawyerSelectionDialog
 
 from .base import BaseController
 
@@ -31,6 +34,7 @@ class MainController(BaseController):
         # Attributes
         self.selected_file_name: Optional[str] = None
         self.output_dir: Optional[str] = None
+        self._skip_manual_prompts = False
         # Create Window
         self.window = MainView(self)
         self.window.mainloop()
@@ -50,6 +54,11 @@ class MainController(BaseController):
                 else:
                     logging.info(f"用戶選擇檔案: {filename}")
                     self.selected_file_name = filename
+                    auto_output_dir = os.path.dirname(filename)
+                    self.output_dir = auto_output_dir
+                    if self.window is not None:
+                        self.window.set_source_file_path(filename)
+                        self.window.set_output_dir_path(auto_output_dir)
                     file_is_not_selected = False
                     return filename
             
@@ -67,6 +76,8 @@ class MainController(BaseController):
             if folder_path:
                 logging.info(f"用戶選擇輸出位置: {folder_path}")
                 self.output_dir = folder_path
+                if self.window is not None:
+                    self.window.set_output_dir_path(folder_path)
                 folder_is_not_selected = False
                 return folder_path
             else:
@@ -96,7 +107,8 @@ class MainController(BaseController):
 
 
         logging.info(f"開始處理檔案: {self.selected_file_name}, 執行動作: 'separate_the_ledger()'")
-        xls = pd.ExcelFile(self.selected_file_name)
+        read_engine = self._get_excel_read_engine(self.selected_file_name)
+        xls = pd.ExcelFile(self.selected_file_name, engine=read_engine)
         sheet_names = xls.sheet_names
 
         target_sheet_name = "明細分類帳(依科目+部門)-0_備註欄加上承辦律師"
@@ -105,7 +117,7 @@ class MainController(BaseController):
             logging.warning("缺乏名為「明細分類帳(依科目+部門)-0_備註欄加上承辦律師」的工作表(sheet)，請檢查檔案中是否有此工作表")
             return
         
-        origin_sheet: DataFrame = pd.read_excel(self.selected_file_name, sheet_name=target_sheet_name)
+        origin_sheet: DataFrame = pd.read_excel(self.selected_file_name, sheet_name=target_sheet_name, engine=read_engine)
         origin_rows: List[Tuple[object, ...]] = list(origin_sheet.itertuples(index=False, name=None))
         if not origin_rows:
             messagebox.showerror("錯誤", "工作表沒有資料，請確認檔案內容是否正確。")
@@ -150,6 +162,90 @@ class MainController(BaseController):
         except Exception as err:
             messagebox.showerror("寫入資料時發生錯誤", "請聯繫管理員！")
             logging.error(f"寫入資料到 'SeparateAccountsWorksheet' 時發生錯誤... Error: {err}")
+
+    def auto_fill_lawyer_codes(self) -> None:
+        if self.selected_file_name is None:
+            messagebox.showerror("錯誤", "請先選擇來源檔案！")
+            return
+
+        target_sheet_name = "明細分類帳(依科目+部門)-0_備註欄加上承辦律師"
+
+        workbook_path = self._ensure_openpyxl_compatible_workbook()
+        read_engine = self._get_excel_read_engine(workbook_path)
+
+        try:
+            origin_sheet: DataFrame = pd.read_excel(workbook_path, sheet_name=target_sheet_name, engine=read_engine)
+        except ValueError:
+            messagebox.showerror("錯誤", "無法在來源檔案中找到目標工作表，請檢查檔案內容。")
+            return
+
+        origin_rows: List[Tuple[object, ...]] = list(origin_sheet.itertuples(index=False, name=None))
+        if not origin_rows:
+            messagebox.showinfo("提醒", "工作表沒有資料，無需填入律師代碼。")
+            return
+
+        try:
+            header_index, _ = self._locate_header(origin_rows)
+        except LedgerFormatError as err:
+            messagebox.showerror("格式錯誤", err.message)
+            return
+
+        lawyer_records = fetch_all_lawyers()
+        known_codes = [record.code for record in lawyer_records]
+
+        workbook = load_workbook(workbook_path)
+        if target_sheet_name not in workbook.sheetnames:
+            messagebox.showerror("錯誤", "來源檔案缺少目標工作表，請確認檔案內容。")
+            return
+        worksheet = workbook[target_sheet_name]
+
+        data_rows = origin_rows[header_index + 1 :]
+        if not data_rows:
+            messagebox.showinfo("提醒", "表頭之後沒有資料列，無需填入律師代碼。")
+            return
+
+        updated_row_count = 0
+        self._skip_manual_prompts = False
+        for offset, row in enumerate(data_rows):
+            excel_row_number = header_index + offset + 3  # openpyxl 1-based row index
+            display_row_number = excel_row_number
+            remark_cell = worksheet.cell(row=excel_row_number, column=10)
+            remark_value = str(remark_cell.value).strip() if remark_cell.value is not None else ""
+            if remark_value:
+                continue
+
+            abstract_value = row[1]
+            summary_text = str(abstract_value) if abstract_value is not None else ""
+            if summary_text.strip() == "" or summary_text.lower() == "nan":
+                continue
+
+            date_value = row[0]
+            if pd.isna(date_value) or str(date_value).strip() == "" or str(date_value).lower() == "nan":
+                continue
+
+            matched_codes = self._match_codes_in_summary(summary_text, known_codes)
+
+            if not matched_codes:
+                if self._skip_manual_prompts:
+                    continue
+                selected_codes = self._prompt_for_codes(summary_text, display_row_number, known_codes)
+                if self._skip_manual_prompts or not selected_codes:
+                    continue
+                insert_unique_lawyers(selected_codes)
+                known_codes = sorted(set(known_codes + selected_codes))
+                matched_codes = selected_codes
+
+            unique_codes = self._deduplicate_preserve_order(matched_codes)
+            remark_cell.value = " ".join(unique_codes)
+            updated_row_count += 1
+
+        workbook.save(workbook_path)
+
+        if updated_row_count == 0:
+            self.window.proccess_hint_text.set("沒有需要更新的備註欄位。")
+        else:
+            self.window.proccess_hint_text.set(f"已更新 {updated_row_count} 筆備註欄位。")
+        messagebox.showinfo("完成", f"已更新 {updated_row_count} 筆備註欄位。")
 
     @staticmethod
     def _row_is_empty(row: Tuple[object, ...]) -> bool:
@@ -270,3 +366,67 @@ class MainController(BaseController):
     def _normalize_text(value: object) -> str:
         text = str(value).strip()
         return text.replace(" ", "").replace("\u3000", "")
+
+    @staticmethod
+    def _deduplicate_preserve_order(codes: Sequence[str]) -> List[str]:
+        seen = set()
+        ordered_codes: List[str] = []
+        for code in codes:
+            normalized = code.strip()
+            if not normalized:
+                continue
+            if normalized not in seen:
+                seen.add(normalized)
+                ordered_codes.append(normalized)
+        return ordered_codes
+
+    @staticmethod
+    def _match_codes_in_summary(summary: str, available_codes: Sequence[str]) -> List[str]:
+        normalized_summary = summary
+        matched: List[str] = []
+        for code in available_codes:
+            if code and code in normalized_summary:
+                matched.append(code)
+        return matched
+
+    def _prompt_for_codes(self, summary: str, row_number: int, available_codes: Sequence[str]) -> Optional[List[str]]:
+        if self.window is None:
+            return None
+
+        dialog = LawyerSelectionDialog(self.window, summary, row_number, list(available_codes))
+        result = dialog.show()
+        if getattr(dialog, "skip_remaining", False):
+            self._skip_manual_prompts = True
+        return result
+
+    @staticmethod
+    def _get_excel_read_engine(file_path: str) -> str:
+        if file_path.lower().endswith(".xls"):
+            return "xlrd"
+        return "openpyxl"
+
+    def _ensure_openpyxl_compatible_workbook(self) -> str:
+        if self.selected_file_name is None:
+            raise LedgerFormatError("尚未選擇來源檔案。")
+
+        file_path = self.selected_file_name
+        if not file_path.lower().endswith(".xls"):
+            return file_path
+
+        converted_path = os.path.splitext(file_path)[0] + "_converted.xlsx"
+        if not os.path.exists(converted_path):
+            read_engine = self._get_excel_read_engine(file_path)
+            xls = pd.ExcelFile(file_path, engine=read_engine)
+            with pd.ExcelWriter(converted_path, engine="openpyxl") as writer:
+                for sheet_name in xls.sheet_names:
+                    df = xls.parse(sheet_name)
+                    df.to_excel(writer, sheet_name=sheet_name, index=False)
+
+        self.selected_file_name = converted_path
+        if self.window is not None:
+            messagebox.showinfo(
+                "資訊",
+                f"偵測到 .xls 檔案，已轉換為 {os.path.basename(converted_path)} 以便後續處理。",
+                parent=self.window,
+            )
+        return converted_path

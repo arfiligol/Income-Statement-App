@@ -3,7 +3,7 @@ import ttkbootstrap as ttk
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from controllers import MainController
+    from ttk_app.controllers import MainController
 
 from .custom_widgets import PlaceholderEntry
 

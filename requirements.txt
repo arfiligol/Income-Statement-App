@@ -14,3 +14,6 @@ quart
 poetry
 ttkbootstrap
 pillow
+PySide6
+qt-material
+watchdog

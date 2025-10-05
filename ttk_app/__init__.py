@@ -1,0 +1,1 @@
+"""Legacy ttkbootstrap application package."""

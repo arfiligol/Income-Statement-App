@@ -6,7 +6,7 @@ from openpyxl.styles import Alignment, Border, Font, Side
 from tkinter import messagebox
 
 if TYPE_CHECKING:
-    from views import MainView
+    from ttk_app.views import MainView
 
 from .base import BaseWorksheet
 

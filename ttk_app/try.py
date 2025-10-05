@@ -11,7 +11,7 @@ from ttkbootstrap.validation import add_regex_validation
 class Gradebook(ttk.Frame):
     def __init__(self, master_window: "ttk.Window"):
         super().__init__(master_window, padding=(20, 10))
-        self.pack(fill=BOTH, expand=YES)
+        self.pack(fill=BOTH, expand=True)
         self.name = ttk.StringVar(value="")
         self.student_id = ttk.StringVar(value="")
         self.course_name = ttk.StringVar(value="")
@@ -37,13 +37,13 @@ class Gradebook(ttk.Frame):
     # Create text/numerical inputs
     def create_form_entry(self, label, variable):
         form_field_container = ttk.Frame(self)
-        form_field_container.pack(fill=X, expand=YES, pady=5)
+        form_field_container.pack(fill=X, expand=True, pady=5)
 
         form_field_label = ttk.Label(master=form_field_container, text = label, width = 15)
         form_field_label.pack(side=LEFT, pady=10)
 
         form_input = ttk.Entry(master=form_field_container, textvariable=variable)
-        form_input.pack(side=LEFT, padx=5, fill=X, expand=YES)
+        form_input.pack(side=LEFT, padx=5, fill=X, expand=True)
 
         add_regex_validation(form_input, r"^[a-zA-Z0-9_]*$")
         return form_input
@@ -69,7 +69,7 @@ class Gradebook(ttk.Frame):
     # Create buttons
     def create_buttonbox(self):
         button_container = ttk.Frame(self)
-        button_container.pack(fill=X, expand=YES, pady=(15, 10))
+        button_container.pack(fill=X, expand=True, pady=(15, 10))
 
         cancel_btn = ttk.Button(
             master=button_container,
@@ -133,7 +133,7 @@ class Gradebook(ttk.Frame):
             stripecolor=(self.colors.light, None)
         )
 
-        table.pack(fill=BOTH, expand=YES, padx=10, pady=10)
+        table.pack(fill=BOTH, expand=True, padx=10, pady=10)
         return table
 
 

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 # Controllers
-from controllers import MainController
+from ttk_app.controllers import MainController
 
 # Utils
-from utils.logger import setup_logger
+from ttk_app.utils.logger import setup_logger
 
 
 def run() -> None:
