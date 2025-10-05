@@ -2,22 +2,22 @@ from __future__ import annotations
 
 from typing import Optional
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, Slot
 from PySide6.QtGui import QAction, QActionGroup
 from PySide6.QtWidgets import QLabel, QMainWindow, QStackedWidget, QToolBar, QVBoxLayout, QWidget
 from qt_material import QtStyleTools
 
-from .database_page import DatabasePage
-from .workflow_page import WorkflowPage
+from material_app.views.pages.database_page import DatabasePage
+from material_app.views.pages.workflow_page import WorkflowPage
 
 
 class MainWindow(QtStyleTools, QMainWindow):
     """Qt-Material styled main window using toolbars similar to official demo."""
 
-    request_select_source = Signal()
-    request_select_output_dir = Signal()
-    request_run_action = Signal(str)
-    request_submit = Signal()
+    selectSourceRequested = Signal()
+    selectOutputDirRequested = Signal()
+    actionSelected = Signal(str)
+    submitRequested = Signal()
 
     def __init__(self) -> None:
         super().__init__()
@@ -99,15 +99,11 @@ class MainWindow(QtStyleTools, QMainWindow):
                 button.setMaximumWidth(150)
 
     def _wire_workflow_controls(self) -> None:
-        self.workflow_page.select_source_button.clicked.connect(self.request_select_source.emit)
-        self.workflow_page.select_output_dir_button.clicked.connect(self.request_select_output_dir.emit)
-        self.workflow_page.auto_fill_button.toggled.connect(
-            lambda checked: self.request_run_action.emit("auto_fill_remark" if checked else "")
-        )
-        self.workflow_page.separate_ledger_button.toggled.connect(
-            lambda checked: self.request_run_action.emit("separate_the_ledger" if checked else "")
-        )
-        self.workflow_page.submit_button.clicked.connect(self.request_submit.emit)
+        self.workflow_page.select_source_button.clicked.connect(self.selectSourceRequested.emit)
+        self.workflow_page.select_output_dir_button.clicked.connect(self.selectOutputDirRequested.emit)
+        self.workflow_page.auto_fill_button.toggled.connect(self._on_auto_fill_toggled)
+        self.workflow_page.separate_ledger_button.toggled.connect(self._on_separate_toggled)
+        self.workflow_page.submit_button.clicked.connect(self.submitRequested.emit)
 
     def switch_view(self, target_view: str) -> None:
         if target_view not in {"workflow", "database"}:
@@ -136,6 +132,23 @@ class MainWindow(QtStyleTools, QMainWindow):
     def set_selected_action(self, action_name: Optional[str]) -> None:
         self.workflow_page.set_action_highlight(action_name)
 
+    def set_submit_state(self, state: str) -> None:
+        self.workflow_page.set_submit_state(state)
+
     @property
     def current_view(self) -> str:
         return self._current_view
+
+    def get_output_filename(self) -> str:
+        return self.workflow_page.filename_input.text()
+
+    # internal ---------------------------------------------------------
+    @Slot(bool)
+    def _on_auto_fill_toggled(self, checked: bool) -> None:
+        if checked:
+            self.actionSelected.emit("auto_fill_remark")
+
+    @Slot(bool)
+    def _on_separate_toggled(self, checked: bool) -> None:
+        if checked:
+            self.actionSelected.emit("separate_the_ledger")

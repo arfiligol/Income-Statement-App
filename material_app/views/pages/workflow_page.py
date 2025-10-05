@@ -19,6 +19,8 @@ class WorkflowPage(QWidget):
         layout.addWidget(self._build_output_section())
         layout.addStretch(1)
 
+        self.set_submit_state("warning")
+
     def _build_source_section(self) -> QFrame:
         frame = QFrame()
         frame.setProperty("class", "card")
@@ -54,7 +56,7 @@ class WorkflowPage(QWidget):
         title.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         title.setProperty("class", "section-title")
 
-        self.auto_fill_button = QPushButton("摘要填入律師代碼")
+        self.auto_fill_button = QPushButton("摘要抓律師代碼")
         self.auto_fill_button.setCheckable(True)
         self.auto_fill_button.setObjectName("autoFillButton")
 
@@ -123,10 +125,18 @@ class WorkflowPage(QWidget):
         return frame
 
     def set_action_highlight(self, action_name: str | None) -> None:
-        active_style = "background-color: #1976d2; color: white;"
-        default_style = ""
-        self.auto_fill_button.setStyleSheet(active_style if action_name == "auto_fill_remark" else default_style)
-        self.separate_ledger_button.setStyleSheet(active_style if action_name == "separate_the_ledger" else default_style)
+        self.auto_fill_button.setChecked(action_name == "auto_fill_remark")
+        self.separate_ledger_button.setChecked(action_name == "separate_the_ledger")
 
     def set_status_message(self, message: str) -> None:
         self.status_label.setText(message)
+
+    def set_submit_state(self, state: str) -> None:
+        if not state:
+            state = "warning"
+        self.submit_button.setProperty("class", state)
+        self.submit_button.style().unpolish(self.submit_button)
+        self.submit_button.style().polish(self.submit_button)
+
+    def reset_submit_state(self) -> None:
+        self.set_submit_state("warning")

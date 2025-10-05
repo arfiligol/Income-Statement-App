@@ -1,1 +1,3 @@
-"""PySide6 + Qt Material UI package."""
+"""Qt Material application package."""
+
+from .app import run
