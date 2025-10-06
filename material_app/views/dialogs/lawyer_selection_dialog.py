@@ -58,7 +58,7 @@ class LawyerSelectionDialog(QDialog):
         button_row = QHBoxLayout()
         button_row.addStretch(1)
 
-        self.skip_button = QPushButton("跳過後續")
+        self.skip_button = QPushButton("跳過後續手動")
         self.skip_button.clicked.connect(self._on_skip)
         button_row.addWidget(self.skip_button)
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from PySide6.QtCore import QObject
 
-from material_app.models.dto import AppState
+from material_app.models import AppState
 from material_app.views.main_window import MainWindow
 from .workflow_controller import WorkflowController
 
@@ -15,6 +15,5 @@ class AppController(QObject):
         self.window = window
         self.state = AppState()
 
-        self.workflow_controller = WorkflowController(window, self.state)
+        self.workflow_controller = WorkflowController(window, self.state.workflow)
         # Placeholder: self.database_controller = DatabaseController(...)
-
