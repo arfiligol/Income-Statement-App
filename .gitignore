@@ -2,10 +2,14 @@
 *.xlsx
 
 # pyinstaller
-build
-dist
+build/
+dist/
 *.spec
 
 # python
 __pycache__/
-.venv
+*.pyc
+.venv/
+
+# system files
+.DS_Store

@@ -1,1 +1,0 @@
-from .lawyer_selection_dialog import LawyerSelectionDialog
