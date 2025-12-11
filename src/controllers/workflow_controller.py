@@ -29,9 +29,9 @@ class WorkflowController(QObject):
 
     def __init__(self, window: MainWindow, state: WorkflowPageState) -> None:
         super().__init__(window)
-        self.window = window
-        self.state = state
-        self._skip_manual_prompts = False
+        self.window: MainWindow = window
+        self.state: WorkflowPageState = state
+        self._skip_manual_prompts: bool = False
 
         self.window.selectSourceRequested.connect(self.select_source_file)
         self.window.selectOutputDirRequested.connect(self.select_output_dir)
@@ -218,7 +218,7 @@ class WorkflowController(QObject):
             xls = pd.ExcelFile(file_path, engine=read_engine)
             with pd.ExcelWriter(converted_path, engine="openpyxl") as writer:
                 for sheet_name in xls.sheet_names:
-                    df = xls.parse(sheet_name)
+                    df = pd.DataFrame(xls.parse(sheet_name))
                     df.to_excel(writer, sheet_name=sheet_name, index=False)
         return converted_path
 

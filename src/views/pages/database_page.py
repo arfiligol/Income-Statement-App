@@ -16,7 +16,7 @@ class DatabasePage(QWidget):
 
         label = QLabel("資料庫操作頁面開發中…")
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        label.setProperty("class", "section-title")
+        _ = label.setProperty("class", "section-title")
         layout.addWidget(label)
 
         layout.addStretch(1)

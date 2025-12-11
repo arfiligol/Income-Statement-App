@@ -1,26 +1,51 @@
 ﻿from __future__ import annotations
 
-from typing import Optional
+from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt, Signal, Slot
 from PySide6.QtGui import QAction, QActionGroup
-from PySide6.QtWidgets import QLabel, QMainWindow, QStackedWidget, QToolBar, QVBoxLayout, QWidget
-from qt_material import QtStyleTools
+from PySide6.QtWidgets import (
+    QLabel,
+    QMainWindow,
+    QStackedWidget,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
+)
+from qt_material import QtStyleTools  # type: ignore
 
 from src.views.pages.database_page import DatabasePage
 from src.views.pages.workflow_page import WorkflowPage
+
+if TYPE_CHECKING:
+    from src.controllers.app_controller import AppController
 
 
 class MainWindow(QtStyleTools, QMainWindow):
     """Qt-Material styled main window using toolbars similar to official demo."""
 
-    selectSourceRequested = Signal()
-    selectOutputDirRequested = Signal()
-    actionSelected = Signal(str)
-    submitRequested = Signal()
+    selectSourceRequested: Signal = Signal()
+    selectOutputDirRequested: Signal = Signal()
+    actionSelected: Signal = Signal(str)
+    submitRequested: Signal = Signal()
+    updateRequested: Signal = Signal()
 
     def __init__(self) -> None:
         super().__init__()
+
+        # Initialize instance variables
+        self.controller: AppController | None = None
+        self.extra: dict[str, str]
+        self.workflow_page: WorkflowPage
+        self.database_page: DatabasePage
+        self.stack: QStackedWidget
+        self._current_view: str
+        self.toolBar: QToolBar
+        self.toolBar_2: QToolBar
+        self.workflow_action: QAction
+        self.database_action: QAction
+        self.update_action: QAction
+
         self.setWindowTitle("小倩工具箱 - Qt Material")
         self.resize(1100, 720)
 
@@ -38,8 +63,8 @@ class MainWindow(QtStyleTools, QMainWindow):
         self.database_page = DatabasePage()
 
         self.stack = QStackedWidget()
-        self.stack.addWidget(self.workflow_page)
-        self.stack.addWidget(self.database_page)
+        _ = self.stack.addWidget(self.workflow_page)
+        _ = self.stack.addWidget(self.database_page)
 
         central = QWidget()
         central_layout = QVBoxLayout(central)
@@ -59,22 +84,51 @@ class MainWindow(QtStyleTools, QMainWindow):
         self.toolBar = QToolBar("AppBar", self)
         self.toolBar.setObjectName("toolBar")
         self.toolBar.setMovable(False)
-        self.toolBar.setAllowedAreas(Qt.TopToolBarArea)
-        self.addToolBar(Qt.TopToolBarArea, self.toolBar)
+        self.toolBar.setAllowedAreas(Qt.ToolBarArea.TopToolBarArea)
+        self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.toolBar)
 
         title_label = QLabel("小倩工具箱")
         title_label.setProperty("class", "app-title")
-        title_label.setStyleSheet("font-size: 24px; font-weight: bold; padding: 4px 12px;")
-        self.toolBar.addWidget(title_label)
-        self.toolBar.addSeparator()
+        title_label.setStyleSheet(
+            "font-size: 24px; font-weight: bold; padding: 4px 12px;"
+        )
+        _ = self.toolBar.addWidget(title_label)
+
+        # Spacer to push update button to the right
+        spacer = QWidget()
+        spacer.setSizePolicy(
+            self.toolBar.widgetForAction(self.toolBar.actions()[0])
+            .sizePolicy()
+            .horizontalPolicy(),
+            self.toolBar.widgetForAction(self.toolBar.actions()[0])
+            .sizePolicy()
+            .verticalPolicy(),
+        )
+        spacer.setStyleSheet("background: transparent;")
+        from PySide6.QtWidgets import QSizePolicy
+
+        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        _ = self.toolBar.addWidget(spacer)
+
+        self.update_action = QAction("發現新版本 (點擊更新)", self)
+        self.update_action.setVisible(False)
+        self.update_action.triggered.connect(self.updateRequested.emit)
+        _ = self.toolBar.addAction(self.update_action)
+
+        # Apply style to update button (make it flashy)
+        update_btn = self.toolBar.widgetForAction(self.update_action)
+        if update_btn:
+            update_btn.setStyleSheet("color: #ffc107; font-weight: bold;")
+
+        _ = self.toolBar.addSeparator()
 
         # Secondary navigation toolbar (vertical like official demo)
         self.toolBar_2 = QToolBar("Navigation", self)
         self.toolBar_2.setObjectName("toolBar_2")
         self.toolBar_2.setMovable(False)
-        self.toolBar_2.setOrientation(Qt.Vertical)
-        self.toolBar_2.setToolButtonStyle(Qt.ToolButtonTextOnly)
-        self.addToolBar(Qt.LeftToolBarArea, self.toolBar_2)
+        self.toolBar_2.setOrientation(Qt.Orientation.Vertical)
+        self.toolBar_2.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
+        self.addToolBar(Qt.ToolBarArea.LeftToolBarArea, self.toolBar_2)
 
         group = QActionGroup(self)
         group.setExclusive(True)
@@ -84,11 +138,11 @@ class MainWindow(QtStyleTools, QMainWindow):
         self.database_action = QAction("資料庫操作", self)
         self.database_action.setCheckable(True)
 
-        group.addAction(self.workflow_action)
-        group.addAction(self.database_action)
+        _ = group.addAction(self.workflow_action)
+        _ = group.addAction(self.database_action)
 
-        self.workflow_action.triggered.connect(lambda: self.switch_view("workflow"))
-        self.database_action.triggered.connect(lambda: self.switch_view("database"))
+        _ = self.workflow_action.triggered.connect(lambda: self.switch_view("workflow"))
+        _ = self.database_action.triggered.connect(lambda: self.switch_view("database"))
 
         self.toolBar_2.addAction(self.workflow_action)
         self.toolBar_2.addAction(self.database_action)
@@ -99,11 +153,19 @@ class MainWindow(QtStyleTools, QMainWindow):
                 button.setMaximumWidth(150)
 
     def _wire_workflow_controls(self) -> None:
-        self.workflow_page.select_source_button.clicked.connect(self.selectSourceRequested.emit)
-        self.workflow_page.select_output_dir_button.clicked.connect(self.selectOutputDirRequested.emit)
-        self.workflow_page.auto_fill_button.toggled.connect(self._on_auto_fill_toggled)
-        self.workflow_page.separate_ledger_button.toggled.connect(self._on_separate_toggled)
-        self.workflow_page.submit_button.clicked.connect(self.submitRequested.emit)
+        _ = self.workflow_page.select_source_button.clicked.connect(
+            self.selectSourceRequested.emit
+        )
+        _ = self.workflow_page.select_output_dir_button.clicked.connect(
+            self.selectOutputDirRequested.emit
+        )
+        _ = self.workflow_page.auto_fill_button.toggled.connect(
+            self._on_auto_fill_toggled
+        )
+        _ = self.workflow_page.separate_ledger_button.toggled.connect(
+            self._on_separate_toggled
+        )
+        _ = self.workflow_page.submit_button.clicked.connect(self.submitRequested.emit)
 
     def switch_view(self, target_view: str) -> None:
         if target_view not in {"workflow", "database"}:
@@ -112,7 +174,9 @@ class MainWindow(QtStyleTools, QMainWindow):
             return
 
         self._current_view = target_view
-        self.stack.setCurrentWidget(self.workflow_page if target_view == "workflow" else self.database_page)
+        self.stack.setCurrentWidget(
+            self.workflow_page if target_view == "workflow" else self.database_page
+        )
         self._update_navigation()
 
     def _update_navigation(self) -> None:
@@ -129,7 +193,7 @@ class MainWindow(QtStyleTools, QMainWindow):
     def set_status_message(self, message: str) -> None:
         self.workflow_page.set_status_message(message)
 
-    def set_selected_action(self, action_name: Optional[str]) -> None:
+    def set_selected_action(self, action_name: str | None) -> None:
         self.workflow_page.set_action_highlight(action_name)
 
     def set_submit_state(self, state: str) -> None:
@@ -152,3 +216,7 @@ class MainWindow(QtStyleTools, QMainWindow):
     def _on_separate_toggled(self, checked: bool) -> None:
         if checked:
             self.actionSelected.emit("separate_the_ledger")
+
+    def show_update_message(self, version: str) -> None:
+        self.update_action.setText(f"發現新版本 v{version} (點擊更新)")
+        self.update_action.setVisible(True)

@@ -1,12 +1,14 @@
 ﻿from __future__ import annotations
 
+import collections.abc
 from dataclasses import dataclass
-from typing import Any, Callable, Iterable, List, Optional, Sequence, Tuple
+from typing import Any, Callable, cast
 
 import unicodedata
 
 import pandas as pd
 from openpyxl import load_workbook
+from openpyxl.cell import Cell
 
 from src.services.dao.lawyer_dao import (
     ensure_lawyers as _ensure_lawyers,
@@ -25,7 +27,7 @@ WORKFLOW_TARGET_SHEET = "明細分類帳(依科目+部門)-0_備註欄加上承�
 class SeparateLedgerResult:
     """Result payload for the separate-the-ledger workflow."""
 
-    rows: List[List[object]]
+    rows: list[list[object]]
     total_debit: int
     total_credit: int
 
@@ -34,12 +36,12 @@ class SeparateLedgerResult:
 class AutoFillPrompt:
     summary: str
     row_number: int
-    known_codes: List[str]
+    known_codes: list[str]
 
 
 @dataclass(frozen=True)
 class AutoFillResponse:
-    selected_codes: List[str]
+    selected_codes: list[str]
     skip_remaining: bool = False
 
 
@@ -48,7 +50,7 @@ class AutoFillResult:
     updated_count: int
 
 
-PromptHandler = Callable[[AutoFillPrompt], Optional[AutoFillResponse]]
+PromptHandler = Callable[[AutoFillPrompt], AutoFillResponse | None]
 
 
 def build_separate_ledger(source_path: str) -> SeparateLedgerResult:
@@ -60,14 +62,23 @@ def build_separate_ledger(source_path: str) -> SeparateLedgerResult:
     except FileNotFoundError as err:  # pragma: no cover - handled at caller level
         raise WorkflowProcessingError("找不到來源檔案，請確認路徑是否正確。") from err
     except Exception as err:  # pragma: no cover - engine / parsing errors
-        raise WorkflowProcessingError("無法開啟來源檔案，請確認檔案格式是否正確。") from err
+        raise WorkflowProcessingError(
+            "無法開啟來源檔案，請確認檔案格式是否正確。"
+        ) from err
 
     sheet_name = _resolve_target_sheet_name(xls.sheet_names)
 
     try:
-        origin_sheet = xls.parse(sheet_name=sheet_name)
+        result = xls.parse(sheet_name=sheet_name)
+        # Assert that result is a DataFrame (not dict)
+        if isinstance(result, pd.DataFrame):
+            origin_sheet = result
+        else:
+            raise WorkflowProcessingError("解析工作表時發生錯誤")
     except Exception as err:  # pragma: no cover - pandas specific errors
-        raise WorkflowProcessingError("無法讀取目標工作表，請確認工作表內容是否正確。") from err
+        raise WorkflowProcessingError(
+            "無法讀取目標工作表，請確認工作表內容是否正確。"
+        ) from err
 
     origin_array = origin_sheet.values
     if origin_array.size == 0:
@@ -75,8 +86,12 @@ def build_separate_ledger(source_path: str) -> SeparateLedgerResult:
     if len(origin_array[0]) != 10:
         raise WorkflowProcessingError("來源資料欄位數與預期不符，請確認工作表格式。")
 
-    rows, total_debit, total_credit = parse_separate_rows(origin_array, register_lawyers)
-    return SeparateLedgerResult(rows=rows, total_debit=total_debit, total_credit=total_credit)
+    rows, total_debit, total_credit = parse_separate_rows(
+        list(origin_array), register_lawyers
+    )
+    return SeparateLedgerResult(
+        rows=rows, total_debit=total_debit, total_credit=total_credit
+    )
 
 
 def auto_fill_lawyer_codes(
@@ -91,12 +106,21 @@ def auto_fill_lawyer_codes(
     except FileNotFoundError as err:
         raise WorkflowProcessingError("找不到來源檔案，請確認路徑是否正確。") from err
     except Exception as err:
-        raise WorkflowProcessingError("無法讀取目標工作表，請確認檔案是否損壞或被其他程式使用。") from err
+        raise WorkflowProcessingError(
+            "無法讀取目標工作表，請確認檔案是否損壞或被其他程式使用。"
+        ) from err
 
     sheet_name = _resolve_target_sheet_name(xls.sheet_names)
 
-    origin_sheet = xls.parse(sheet_name=sheet_name)
-    origin_rows: List[Tuple[object, ...]] = list(origin_sheet.itertuples(index=False, name=None))
+    result = xls.parse(sheet_name=sheet_name)
+    # Assert that result is a DataFrame (not dict)
+    if isinstance(result, pd.DataFrame):
+        origin_sheet = result
+    else:
+        raise WorkflowProcessingError("解析工作表時發生錯誤")
+    origin_rows: list[tuple[object, ...]] = list(
+        origin_sheet.itertuples(index=False, name=None)
+    )
     if not origin_rows:
         raise WorkflowProcessingError("工作表沒有資料，請確認檔案內容是否正確。")
 
@@ -109,7 +133,9 @@ def auto_fill_lawyer_codes(
     except FileNotFoundError as err:
         raise WorkflowProcessingError("找不到來源檔案，請確認路徑是否正確。") from err
     except Exception as err:  # pragma: no cover - openpyxl specific errors
-        raise WorkflowProcessingError("無法開啟來源檔案進行寫入，請確認檔案是否被其他程式使用。") from err
+        raise WorkflowProcessingError(
+            "無法開啟來源檔案進行寫入，請確認檔案是否被其他程式使用。"
+        ) from err
 
     worksheet_name = _resolve_target_sheet_name(workbook.sheetnames)
     worksheet = workbook[worksheet_name]
@@ -123,12 +149,14 @@ def auto_fill_lawyer_codes(
     for offset, row in enumerate(data_rows, start=1):
         excel_row_number = header_index + offset + 2
         remark_cell = worksheet.cell(row=excel_row_number, column=10)
-        remark_value = str(remark_cell.value).strip() if remark_cell.value is not None else ""
+        remark_value = (
+            str(remark_cell.value).strip() if remark_cell.value is not None else ""
+        )
         if remark_value:
             continue
 
         date_value = row[0]
-        if pd.isna(date_value) or str(date_value).strip() in {"", "nan"}:
+        if bool(pd.isna(date_value)) or str(date_value).strip() in {"", "nan"}:
             continue
 
         summary_text = str(row[1]) if row[1] is not None else ""
@@ -150,7 +178,9 @@ def auto_fill_lawyer_codes(
             if response is None:
                 continue
 
-            selected_codes = [code.strip() for code in response.selected_codes if code.strip()]
+            selected_codes = [
+                code.strip() for code in response.selected_codes if code.strip()
+            ]
             if not selected_codes:
                 if response.skip_remaining:
                     skip_manual_prompts = True
@@ -165,7 +195,9 @@ def auto_fill_lawyer_codes(
         else:
             register_lawyers(matched_codes)
 
-        remark_cell.value = " ".join(_deduplicate_preserve_order(matched_codes))
+        # Cast to Cell to avoid MergedCell assignment error
+        if isinstance(remark_cell, Cell):
+            remark_cell.value = " ".join(_deduplicate_preserve_order(matched_codes))
         updated_count += 1
 
     workbook.save(workbook_path)
@@ -174,9 +206,9 @@ def auto_fill_lawyer_codes(
 
 
 def parse_separate_rows(
-    origin_array: Sequence[Sequence[object]],
-    register_codes: Callable[[Iterable[str]], None],
-) -> Tuple[List[List[object]], int, int]:
+    origin_array: collections.abc.Sequence[collections.abc.Sequence[object]],
+    register_codes: Callable[[collections.abc.Iterable[str]], None],
+) -> tuple[list[list[object]], int, int]:
     header_index, header_row = _locate_header(origin_array)
     _validate_header(header_row)
 
@@ -184,7 +216,7 @@ def parse_separate_rows(
     if len(data_rows) == 0:
         raise WorkflowProcessingError("表頭之後沒有資料列，請確認來源工作表內容。")
 
-    data: List[List[object]] = []
+    data: list[list[object]] = []
     total_debit = 0
     total_credit = 0
 
@@ -194,29 +226,37 @@ def parse_separate_rows(
 
         row_number = header_index + offset + 2
         if len(row) < 10:
-            raise WorkflowProcessingError(f"第 {row_number} 行欄位數不足，預期至少 10 欄。")
+            raise WorkflowProcessingError(
+                f"第 {row_number} 行欄位數不足，預期至少 10 欄。"
+            )
 
         date = row[0]
-        if pd.isna(date) or str(date).strip() == "" or str(date).lower() == "nan":
+        if bool(pd.isna(date)) or str(date).strip() == "" or str(date).lower() == "nan":
             continue
 
-        abstract = str(row[1]).strip() if not pd.isna(row[1]) else ""
+        abstract = str(row[1]).strip() if not bool(pd.isna(row[1])) else ""
         debit_value = _coerce_amount(row[2], "借方金額", row_number)
         credit_value = _coerce_amount(row[3], "貸方金額", row_number)
 
         department_raw = row[8]
-        department = str(department_raw).strip() if not pd.isna(department_raw) else ""
+        department = (
+            str(department_raw).strip() if not bool(pd.isna(department_raw)) else ""
+        )
         if department == "" or department.lower() == "nan":
             raise WorkflowProcessingError(f"第 {row_number} 行「部門」欄位為空白。")
 
         remark_raw = row[9]
         remark = str(remark_raw).strip()
         if remark == "" or remark.lower() == "nan":
-            raise WorkflowProcessingError(f"第 {row_number} 行「備註」欄位缺少律師代碼。")
+            raise WorkflowProcessingError(
+                f"第 {row_number} 行「備註」欄位缺少律師代碼。"
+            )
 
         codes = _normalize_codes(remark)
         if not codes:
-            raise WorkflowProcessingError(f"第 {row_number} 行「備註」欄位缺少律師代碼。")
+            raise WorkflowProcessingError(
+                f"第 {row_number} 行「備註」欄位缺少律師代碼。"
+            )
 
         register_codes(codes)
 
@@ -226,24 +266,28 @@ def parse_separate_rows(
             separate_credit = int(round(float(credit_value) / divider))
             total_debit += separate_debit
             total_credit += separate_credit
-            data.append([date, abstract, department, separate_debit, separate_credit, code])
+            data.append(
+                [date, abstract, department, separate_debit, separate_credit, code]
+            )
 
     if not data:
-        raise WorkflowProcessingError("未能從資料中取得任何有效的律師分帳紀錄，請確認來源資料。")
+        raise WorkflowProcessingError(
+            "未能從資料中取得任何有效的律師分帳紀錄，請確認來源資料。"
+        )
 
     return data, total_debit, total_credit
 
 
-def _normalize_codes(raw: str) -> List[str]:
+def _normalize_codes(raw: str) -> list[str]:
     cleaned = raw.replace("\n", " ")
     return [token for token in (piece.strip() for piece in cleaned.split(" ")) if token]
 
 
-def fetch_known_lawyers() -> List[str]:
+def fetch_known_lawyers() -> list[str]:
     return [lawyer.code for lawyer in _get_lawyers()]
 
 
-def register_lawyers(codes: Iterable[str]) -> None:
+def register_lawyers(codes: collections.abc.Iterable[str]) -> None:
     _ensure_lawyers(codes)
 
 
@@ -257,13 +301,17 @@ def _get_excel_read_engine(file_path: str) -> str:
     return "xlrd" if file_path.lower().endswith(".xls") else "openpyxl"
 
 
-def _locate_header(origin_rows: Sequence[Sequence[object]]) -> Tuple[int, Sequence[object]]:
+def _locate_header(
+    origin_rows: collections.abc.Sequence[collections.abc.Sequence[object]],
+) -> tuple[int, collections.abc.Sequence[object]]:
     for index, row in enumerate(origin_rows):
         if _row_is_empty(row):
             continue
 
         if len(row) < 10:
-            raise WorkflowProcessingError(f"第 {index + 1} 行欄位數不足，預期至少 10 欄。")
+            raise WorkflowProcessingError(
+                f"第 {index + 1} 行欄位數不足，預期至少 10 欄。"
+            )
 
         cell_value = _normalize_text(row[9])
         if cell_value == _normalize_text("備註"):
@@ -272,7 +320,7 @@ def _locate_header(origin_rows: Sequence[Sequence[object]]) -> Tuple[int, Sequen
     raise WorkflowProcessingError("找不到包含「備註」欄位的表頭，請確認來源檔案格式。")
 
 
-def _validate_header(header_row: Sequence[object]) -> None:
+def _validate_header(header_row: collections.abc.Sequence[object]) -> None:
     expected_columns = {
         0: "日期",
         1: "摘要",
@@ -282,10 +330,12 @@ def _validate_header(header_row: Sequence[object]) -> None:
         9: "備註",
     }
 
-    mismatched: List[str] = []
+    mismatched: list[str] = []
     for column_index, expected_value in expected_columns.items():
         if column_index >= len(header_row):
-            mismatched.append(f"第 {column_index + 1} 欄預期為「{expected_value}」，偵測到「空白」。")
+            mismatched.append(
+                f"第 {column_index + 1} 欄預期為「{expected_value}」，偵測到「空白」。"
+            )
             continue
 
         raw_value = str(header_row[column_index])
@@ -301,11 +351,11 @@ def _validate_header(header_row: Sequence[object]) -> None:
         raise WorkflowProcessingError("；".join(mismatched))
 
 
-def _row_is_empty(row: Sequence[object]) -> bool:
+def _row_is_empty(row: collections.abc.Sequence[object]) -> bool:
     return all(pd.isna(cell) or str(cell).strip() == "" for cell in row)
 
 
-def _coerce_amount(raw_value: Any, column_name: str, row_number: int) -> float:
+def _coerce_amount(raw_value: object, column_name: str, row_number: int) -> float:
     if pd.isna(raw_value):
         return 0.0
 
@@ -316,7 +366,7 @@ def _coerce_amount(raw_value: Any, column_name: str, row_number: int) -> float:
             return 0.0
 
     try:
-        return float(value_to_convert)
+        return float(cast(float, value_to_convert))
     except (TypeError, ValueError):
         raise WorkflowProcessingError(
             f"第 {row_number} 行「{column_name}」欄位不是有效的數字：{raw_value}"
@@ -330,7 +380,7 @@ def _normalize_text(value: Any) -> str:
     return text.lower()
 
 
-def _resolve_target_sheet_name(sheet_names: Sequence[str]) -> str:
+def _resolve_target_sheet_name(sheet_names: collections.abc.Sequence[str]) -> str:
     if WORKFLOW_TARGET_SHEET in sheet_names:
         return WORKFLOW_TARGET_SHEET
 
@@ -351,23 +401,25 @@ def _resolve_target_sheet_name(sheet_names: Sequence[str]) -> str:
 
     available = "\n".join(f"- {name}" for name in sheet_names) or "<無任何工作表>"
     raise WorkflowProcessingError(
-        "找不到預期的律師備註工作表，請確認來源檔案是否包含『"
+        f"找不到預期的律師備註工作表，請確認來源檔案是否包含『"
         f"{WORKFLOW_TARGET_SHEET}』，或檢查工作表名稱（目前偵測到：\n{available}）"
     )
 
 
-def _match_codes_in_summary(summary: str, available_codes: Sequence[str]) -> List[str]:
+def _match_codes_in_summary(
+    summary: str, available_codes: collections.abc.Sequence[str]
+) -> list[str]:
     normalized_summary = summary
-    matched: List[str] = []
+    matched: list[str] = []
     for code in available_codes:
         if code and code in normalized_summary:
             matched.append(code)
     return matched
 
 
-def _deduplicate_preserve_order(codes: Sequence[str]) -> List[str]:
+def _deduplicate_preserve_order(codes: collections.abc.Sequence[str]) -> list[str]:
     seen = set()
-    ordered_codes: List[str] = []
+    ordered_codes: list[str] = []
     for code in codes:
         normalized = code.strip()
         if not normalized:

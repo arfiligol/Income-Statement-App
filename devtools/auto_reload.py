@@ -3,36 +3,39 @@ from __future__ import annotations
 import argparse
 import subprocess
 import sys
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+
+if TYPE_CHECKING:
+    from watchdog.events import FileSystemEvent
 
 
 class RestartHandler(FileSystemEventHandler):
     def __init__(self, command: list[str]) -> None:
         super().__init__()
-        self.command = command
-        self.process: subprocess.Popen | None = None
+        self.command: list[str] = command
+        self.process: subprocess.Popen[bytes] | None = None
 
-    def on_any_event(self, event):
+    def on_any_event(self, event: FileSystemEvent) -> None:
         if event.is_directory:
             return
         if self.process and self.process.poll() is None:
             self.process.terminate()
-            self.process.wait()
+            _ = self.process.wait()
         self.process = subprocess.Popen(self.command)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Auto-restart PySide app on changes")
-    parser.add_argument("path", nargs="?", default=".", help="Path to watch")
-    parser.add_argument("--cmd", nargs=argparse.REMAINDER, default=[sys.executable, "pyside_main.py"])
+    _ = parser.add_argument("path", nargs="?", default=".", help="Path to watch")
+    _ = parser.add_argument("--cmd", nargs=argparse.REMAINDER, default=[sys.executable, "pyside_main.py"])
     args = parser.parse_args()
 
     handler = RestartHandler(args.cmd)
     observer = Observer()
-    observer.schedule(handler, args.path, recursive=True)
+    _ = observer.schedule(handler, args.path, recursive=True)
     observer.start()
 
     try:

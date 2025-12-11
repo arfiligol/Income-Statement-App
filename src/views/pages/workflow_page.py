@@ -10,6 +10,18 @@ class WorkflowPage(QWidget):
     def __init__(self) -> None:
         super().__init__()
 
+        # Initialize instance variables with type annotations
+        self.source_path_label: QLabel
+        self.select_source_button: QPushButton
+        self.auto_fill_button: QPushButton
+        self.separate_ledger_button: QPushButton
+        self.action_group: QButtonGroup
+        self.output_dir_path: QLabel
+        self.select_output_dir_button: QPushButton
+        self.filename_input: QLineEdit
+        self.status_label: QLabel
+        self.submit_button: QPushButton
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(18)
@@ -23,14 +35,14 @@ class WorkflowPage(QWidget):
 
     def _build_source_section(self) -> QFrame:
         frame = QFrame()
-        frame.setProperty("class", "card")
+        _ = frame.setProperty("class", "card")
         frame_layout = QHBoxLayout(frame)
         frame_layout.setContentsMargins(16, 12, 16, 12)
         frame_layout.setSpacing(16)
 
         title = QLabel("請選擇來源檔案")
         title.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
-        title.setProperty("class", "section-title")
+        _ = title.setProperty("class", "section-title")
 
         self.source_path_label = QLabel("尚未選擇來源檔案")
         self.source_path_label.setObjectName("sourcePathLabel")
@@ -47,14 +59,14 @@ class WorkflowPage(QWidget):
 
     def _build_action_section(self) -> QFrame:
         frame = QFrame()
-        frame.setProperty("class", "card")
+        _ = frame.setProperty("class", "card")
         frame_layout = QHBoxLayout(frame)
         frame_layout.setContentsMargins(16, 12, 16, 12)
         frame_layout.setSpacing(16)
 
         title = QLabel("請選擇要執行的功能")
         title.setAlignment(Qt.AlignmentFlag.AlignVCenter)
-        title.setProperty("class", "section-title")
+        _ = title.setProperty("class", "section-title")
 
         self.auto_fill_button = QPushButton("摘要抓律師代碼")
         self.auto_fill_button.setCheckable(True)
@@ -78,14 +90,14 @@ class WorkflowPage(QWidget):
 
     def _build_output_section(self) -> QFrame:
         frame = QFrame()
-        frame.setProperty("class", "card")
+        _ = frame.setProperty("class", "card")
         frame_layout = QVBoxLayout(frame)
         frame_layout.setContentsMargins(16, 16, 16, 16)
         frame_layout.setSpacing(16)
 
         title = QLabel("輸出設定")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setProperty("class", "section-title")
+        _ = title.setProperty("class", "section-title")
         frame_layout.addWidget(title)
 
         dir_row = QHBoxLayout()
@@ -115,7 +127,7 @@ class WorkflowPage(QWidget):
         submit_row.setSpacing(12)
         self.status_label = QLabel("")
         self.status_label.setObjectName("statusLabel")
-        self.status_label.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
         self.submit_button = QPushButton("執行功能 (Submit)")
         self.submit_button.setObjectName("submitButton")
         submit_row.addWidget(self.status_label, 1)
@@ -134,7 +146,7 @@ class WorkflowPage(QWidget):
     def set_submit_state(self, state: str) -> None:
         if not state:
             state = "warning"
-        self.submit_button.setProperty("class", state)
+        _ = self.submit_button.setProperty("class", state)
         self.submit_button.style().unpolish(self.submit_button)
         self.submit_button.style().polish(self.submit_button)
 

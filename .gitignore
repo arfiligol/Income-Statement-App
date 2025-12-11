@@ -1,15 +1,16 @@
 *.xls
 *.xlsx
+*.db
 
 # pyinstaller
 build/
 dist/
-*.spec
 
 # python
 __pycache__/
 *.pyc
 .venv/
+.env
 
 # system files
 .DS_Store
