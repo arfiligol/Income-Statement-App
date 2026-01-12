@@ -12,6 +12,7 @@ from src.models import WorkflowPageState
 from src.services.workflow_service import (
     AutoFillPrompt,
     AutoFillResponse,
+    UserAbortedError,
     WorkflowProcessingError,
     build_separate_ledger,
     get_filename_validator,
@@ -143,6 +144,10 @@ class WorkflowController(QObject):
 
         try:
             result = run_auto_fill_workflow(workbook_path, prompt_handler=prompt_handler)
+        except UserAbortedError:
+            self.window.set_status_message("作業已取消")
+            self.window.set_submit_state("warning")
+            return
         except WorkflowProcessingError as err:
             QMessageBox.warning(self.window, "提示", str(err))
             self.window.set_status_message(str(err))
@@ -196,13 +201,23 @@ class WorkflowController(QObject):
         row_number: int,
         available_codes: Sequence[str],
     ) -> Optional[AutoFillResponse]:
-        dialog = LawyerSelectionDialog(summary, row_number, list(available_codes), parent=self.window)
-        if dialog.exec():
+        dialog = LawyerSelectionDialog(
+            summary, row_number, list(available_codes), parent=self.window
+        )
+        dialog.exec()
+
+        user_action = getattr(dialog, "user_action", "abort")
+
+        if user_action == "confirm" or user_action == "skip_all":
             return AutoFillResponse(
                 selected_codes=list(dialog.selected_codes),
-                skip_remaining=bool(getattr(dialog, "skip_remaining", False)),
+                skip_remaining=bool(dialog.skip_remaining),
             )
-        return None
+        elif user_action == "skip_single":
+            return None
+        else:
+            # user_action == "abort", triggered by X or close
+            raise UserAbortedError()
 
     @staticmethod
     def _get_excel_read_engine(file_path: str) -> str:
