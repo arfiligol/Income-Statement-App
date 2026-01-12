@@ -17,7 +17,7 @@ class SectionTitle(QLabel):
         display_text = f"{icon}  {text}" if icon else text
         super().__init__(display_text, parent)
         self.setStyleSheet(
-            "font-size: 15px; "
+            "font-size: 16px; "
             "font-weight: bold; "
             "color: #ffffff; "
             "padding: 4px 0; "
@@ -48,7 +48,7 @@ class DescriptionLabel(QLabel):
     def __init__(self, text: str, parent: QWidget | None = None) -> None:
         super().__init__(text, parent)
         self.setWordWrap(True)
-        self.setStyleSheet("color: #b0bec5; font-size: 13px; line-height: 1.5;")
+        self.setStyleSheet("color: #b0bec5; font-size: 15px; line-height: 1.5;")
         self.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
 
 
@@ -77,7 +77,7 @@ class InstructionBox(QFrame):
         # Header with icon
         header = QLabel(f"📋 {title}")
         header.setStyleSheet(
-            "font-size: 13px; font-weight: bold; color: #90caf9; "
+            "font-size: 15px; font-weight: bold; color: #90caf9; "
             "background: transparent; border: none; padding: 0;"
         )
         layout.addWidget(header)
@@ -88,7 +88,7 @@ class InstructionBox(QFrame):
                 item = QLabel(f"{i}. {instruction}")
                 item.setWordWrap(True)
                 item.setStyleSheet(
-                    "color: #b0bec5; font-size: 12px; "
+                    "color: #b0bec5; font-size: 14px; "
                     "background: transparent; border: none; padding: 0;"
                 )
                 layout.addWidget(item)
@@ -113,7 +113,7 @@ class LogDisplay(QFrame):
         # Header
         header = QLabel("📝 執行狀態")
         header.setStyleSheet(
-            "font-size: 11px; font-weight: bold; color: #78909c; "
+            "font-size: 13px; font-weight: bold; color: #78909c; "
             "background: transparent; border: none;"
         )
         layout.addWidget(header)
@@ -122,7 +122,7 @@ class LogDisplay(QFrame):
         self._status_label = QLabel("準備就緒")
         self._status_label.setWordWrap(True)
         self._status_label.setStyleSheet(
-            "font-size: 13px; color: #e0e0e0; "
+            "font-size: 15px; color: #e0e0e0; "
             "background: transparent; border: none; "
             "font-family: 'SF Mono', 'Consolas', monospace;"
         )
@@ -139,7 +139,7 @@ class LogDisplay(QFrame):
         color = colors.get(msg_type, "#e0e0e0")
         self._status_label.setText(message)
         self._status_label.setStyleSheet(
-            f"font-size: 13px; color: {color}; "
+            f"font-size: 15px; color: {color}; "
             "background: transparent; border: none; "
             "font-family: 'SF Mono', 'Consolas', monospace;"
         )

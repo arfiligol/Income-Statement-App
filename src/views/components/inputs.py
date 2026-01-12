@@ -19,7 +19,7 @@ class StyledLineEdit(QLineEdit):
             "border-radius: 6px; "
             "padding: 8px 12px; "
             "color: #e0e0e0; "
-            "font-size: 13px;"
+            "font-size: 15px;"
         )
 
 
@@ -40,7 +40,7 @@ class LabeledInput(QWidget):
 
         # Label on top
         self.label = QLabel(label)
-        self.label.setStyleSheet("font-weight: bold; color: #90caf9; font-size: 13px;")
+        self.label.setStyleSheet("font-weight: bold; color: #90caf9; font-size: 15px;")
         layout.addWidget(self.label)
 
         # Input field
@@ -76,7 +76,7 @@ class FilePathInput(QWidget):
         # Label on top
         self.label = QLabel(label)
         self.label.setProperty("class", "field-label")
-        self.label.setStyleSheet("font-weight: bold; color: #90caf9; font-size: 13px;")
+        self.label.setStyleSheet("font-weight: bold; color: #90caf9; font-size: 15px;")
         main_layout.addWidget(self.label)
 
         # Input row (path display + button)
@@ -92,7 +92,7 @@ class FilePathInput(QWidget):
             "border-radius: 6px; "
             "padding: 8px 12px; "
             "color: #b0bec5; "
-            "font-size: 13px;"
+            "font-size: 15px;"
         )
         self.path_display.setMinimumHeight(36)
 
@@ -115,7 +115,7 @@ class FilePathInput(QWidget):
             "border-radius: 6px; "
             "padding: 8px 12px; "
             "color: #e0e0e0; "
-            "font-size: 13px;"
+            "font-size: 15px;"
         )
 
     def get_path(self) -> str:
