@@ -1,5 +1,4 @@
 ﻿"""Qt Material application package."""
 
 from .app import run
-
-__version__ = "0.1.0"
+from .version import __version__

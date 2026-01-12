@@ -12,13 +12,24 @@ from src.theme import DEFAULT_THEME, DEFAULT_EXTRA
 
 
 def run(theme: str = DEFAULT_THEME, extra: dict[str, str] | None = None) -> None:
-    app = QApplication(sys.argv)
-    app.setFont(QFont("Helvetica Neue", 11))
-    apply_stylesheet(app, theme=theme, extra=extra or DEFAULT_EXTRA)
+    print("DEBUG: Application starting...")
+    try:
+        app = QApplication(sys.argv)
+        print("DEBUG: QApplication created")
+        app.setFont(QFont("Helvetica Neue", 11))
+        apply_stylesheet(app, theme=theme, extra=extra or DEFAULT_EXTRA)
+        print("DEBUG: Stylesheet applied")
 
-    window = MainWindow()
-    controller = AppController(window)
-    window.controller = controller
-    window.show()
+        window = MainWindow()
+        print("DEBUG: MainWindow created")
+        controller = AppController(window)
+        window.controller = controller
+        window.show()
+        print("DEBUG: Window shown, entering event loop")
 
-    sys.exit(app.exec())
+        sys.exit(app.exec())
+    except Exception as e:
+        import traceback
+        print("CRITICAL ERROR:")
+        traceback.print_exc()
+        input("Press Enter to exit...")

@@ -62,9 +62,17 @@ class MainWindow(QtStyleTools, QMainWindow):
         self.workflow_page = WorkflowPage()
         self.database_page = DatabasePage()
 
+        # v0.1.5 Testing Page
+        self.testing_page = QLabel("v0.1.5 測試更新成功！")
+        self.testing_page.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.testing_page.setStyleSheet(
+            "font-size: 24px; color: #17a2b8; font-weight: bold;"
+        )
+
         self.stack = QStackedWidget()
         _ = self.stack.addWidget(self.workflow_page)
         _ = self.stack.addWidget(self.database_page)
+        _ = self.stack.addWidget(self.testing_page)
 
         central = QWidget()
         central_layout = QVBoxLayout(central)
@@ -87,7 +95,7 @@ class MainWindow(QtStyleTools, QMainWindow):
         self.toolBar.setAllowedAreas(Qt.ToolBarArea.TopToolBarArea)
         self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.toolBar)
 
-        title_label = QLabel("小倩工具箱")
+        title_label = QLabel("小倩工具箱 v0.1.5")
         title_label.setProperty("class", "app-title")
         title_label.setStyleSheet(
             "font-size: 24px; font-weight: bold; padding: 4px 12px;"
@@ -137,16 +145,22 @@ class MainWindow(QtStyleTools, QMainWindow):
         self.workflow_action.setCheckable(True)
         self.database_action = QAction("資料庫操作", self)
         self.database_action.setCheckable(True)
+        self.testing_action = QAction("測試頁面", self)
+        self.testing_action.setCheckable(True)
 
         _ = group.addAction(self.workflow_action)
         _ = group.addAction(self.database_action)
+        _ = group.addAction(self.testing_action)
 
         _ = self.workflow_action.triggered.connect(lambda: self.switch_view("workflow"))
         _ = self.database_action.triggered.connect(lambda: self.switch_view("database"))
+        _ = self.testing_action.triggered.connect(lambda: self.switch_view("testing"))
 
         self.toolBar_2.addAction(self.workflow_action)
         self.toolBar_2.addAction(self.database_action)
-        for action in (self.workflow_action, self.database_action):
+        self.toolBar_2.addAction(self.testing_action)
+
+        for action in (self.workflow_action, self.database_action, self.testing_action):
             button = self.toolBar_2.widgetForAction(action)
             if button is not None:
                 button.setMinimumWidth(150)
@@ -168,21 +182,28 @@ class MainWindow(QtStyleTools, QMainWindow):
         _ = self.workflow_page.submit_button.clicked.connect(self.submitRequested.emit)
 
     def switch_view(self, target_view: str) -> None:
-        if target_view not in {"workflow", "database"}:
+        if target_view not in {"workflow", "database", "testing"}:
             return
         if target_view == self._current_view:
             return
 
         self._current_view = target_view
-        self.stack.setCurrentWidget(
-            self.workflow_page if target_view == "workflow" else self.database_page
-        )
+
+        widget_map = {
+            "workflow": self.workflow_page,
+            "database": self.database_page,
+            "testing": self.testing_page,
+        }
+
+        self.stack.setCurrentWidget(widget_map[target_view])
         self._update_navigation()
 
     def _update_navigation(self) -> None:
         workflow_active = self._current_view == "workflow"
+        database_active = self._current_view == "database"
         self.workflow_action.setChecked(workflow_active)
-        self.database_action.setChecked(not workflow_active)
+        self.database_action.setChecked(database_active)
+        self.testing_action.setChecked(self._current_view == "testing")
 
     def set_source_path(self, path: str) -> None:
         self.workflow_page.source_path_label.setText(path)
@@ -217,6 +238,7 @@ class MainWindow(QtStyleTools, QMainWindow):
         if checked:
             self.actionSelected.emit("separate_the_ledger")
 
+    @Slot(str)
     def show_update_message(self, version: str) -> None:
         self.update_action.setText(f"發現新版本 v{version} (點擊更新)")
         self.update_action.setVisible(True)
