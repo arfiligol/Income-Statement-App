@@ -87,7 +87,9 @@ dotnet build
 git status
 git log
 git log -n
+git log --oneline
 git diff
+git diff --staged
 git show
 git branch
 git branch -a
@@ -96,6 +98,12 @@ git ls-files
 git ls-tree
 git config --list
 git config --get
+git stash list
+git tag
+git tag -l
+git reflog
+git describe
+git rev-parse
 ```
 
 ## 搜尋和尋找
