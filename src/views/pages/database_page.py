@@ -69,7 +69,7 @@ class DatabasePage(QWidget):
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)       # Fixed width is most stable for widgets
         
         self.table.setColumnWidth(0, 200) # Default width for Source
-        self.table.setColumnWidth(2, 200) # Fixed width for actions (148px content + padding)
+        self.table.setColumnWidth(2, 240) # 240px to safely accommodate buttons + spacing
         
         self.table.setAlternatingRowColors(True)
         self.table.verticalHeader().setVisible(False) # Hide row numbers
@@ -128,28 +128,31 @@ class DatabasePage(QWidget):
             
             # Actions
             action_widget = QWidget()
-            action_widget.setMinimumWidth(160) # Ensure enough space for buttons
             action_widget.setStyleSheet("background: transparent;")
             action_layout = QHBoxLayout(action_widget)
-            action_layout.setContentsMargins(8, 4, 8, 4)
-            action_layout.setSpacing(12) # Use larger spacing
-            action_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            action_layout.setContentsMargins(0, 0, 0, 0)
+            action_layout.setSpacing(16)
+            
+            # Center alignment using stretches
+            action_layout.addStretch(1)
             
             edit_btn = SecondaryButton("編輯")
-            edit_btn.setFixedSize(60, 32)
-            edit_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            # Remove fixed size, let it size to content
+            edit_btn.setMinimumWidth(70) 
             # Use default param to capture loop variable
             edit_btn.clicked.connect(lambda checked=False, s=alias.source_code, t=alias.target_codes: self._on_edit(s, t))
             
             delete_btn = SecondaryButton("刪除")
-            delete_btn.setFixedSize(60, 32)
-            delete_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            delete_btn.setProperty("class", "danger") # Assuming danger class exists or just relying on red text if styled
+            # Remove fixed size
+            delete_btn.setMinimumWidth(70)
+            delete_btn.setProperty("class", "danger") 
             delete_btn.setStyleSheet("color: #ef5350; border: 1px solid rgba(239, 83, 80, 0.5); border-radius: 4px;")
             delete_btn.clicked.connect(lambda checked=False, s=alias.source_code: self._on_delete(s))
             
             action_layout.addWidget(edit_btn)
             action_layout.addWidget(delete_btn)
+            
+            action_layout.addStretch(1)
             
             self.table.setCellWidget(row_idx, 2, action_widget)
 
