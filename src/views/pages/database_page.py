@@ -61,15 +61,47 @@ class DatabasePage(QWidget):
         self.table = QTableWidget()
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(["來源代碼 (Source)", "目標代碼列表 (Targets)", "操作"])
-        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
-        self.table.setColumnWidth(2, 160)
+        
+        # Column resizing
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive) # Allow user to resize source
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)     # Targets take remaining space
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)       # Fixed width for actions
+        
+        self.table.setColumnWidth(0, 200) # Default width for Source
+        self.table.setColumnWidth(2, 180) # Slightly wider for actions
+        
         self.table.setAlternatingRowColors(True)
+        self.table.verticalHeader().setVisible(False) # Hide row numbers
+        self.table.setShowGrid(False) # Cleaner look
+        self.table.setDefaultDropAction(Qt.DropAction.IgnoreAction)
+        self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers) # Read-only
+        self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        
         self.table.setStyleSheet(
-            "QTableWidget { background-color: rgba(255, 255, 255, 0.05); border-radius: 6px; }"
-            "QHeaderView::section { background-color: rgba(0, 0, 0, 0.2); font-weight: bold; padding: 4px; border: none; }"
-            "QTableWidget::item { padding: 4px; }"
+            """
+            QTableWidget {
+                background-color: rgba(30, 30, 30, 0.4);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                gridline-color: rgba(255, 255, 255, 0.05);
+            }
+            QTableWidget::item {
+                padding: 12px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            QHeaderView::section {
+                background-color: rgba(40, 40, 40, 0.8);
+                color: #e0e0e0;
+                font-weight: bold;
+                padding: 12px;
+                border: none;
+                border-bottom: 2px solid #5c6bc0;
+            }
+            QTableWidget::item:selected {
+                background-color: rgba(92, 107, 192, 0.2);
+            }
+            """
         )
         layout.addWidget(self.table, 1)
 
