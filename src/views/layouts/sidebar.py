@@ -28,8 +28,8 @@ class Sidebar(QFrame):
         self._nav_group = QButtonGroup(self)
         self._nav_group.setExclusive(True)
 
-        # Navigation items
-        self._nav_buttons: dict[str, NavButton] = {}
+        self._nav_group.setExclusive(True)
+
 
         # Add default navigation items
         self._add_nav_item("workflow", "📋 工作包", layout)
@@ -47,7 +47,7 @@ class Sidebar(QFrame):
     def _add_nav_item(self, name: str, text: str, layout: QVBoxLayout) -> None:
         """Add a navigation item to the sidebar."""
         btn = NavButton(text)
-        btn.setProperty("nav-target", name)
+        _ = btn.setProperty("nav-target", name)
         self._nav_buttons[name] = btn
         self._nav_group.addButton(btn)
         layout.addWidget(btn)
