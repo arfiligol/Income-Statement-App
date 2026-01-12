@@ -5,8 +5,7 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QWidget, QVBoxLayout
 
 from src.views.components.cards import FormCard
-from src.views.components.inputs import FilePathInput, StyledLineEdit
-from src.views.components.labels import SectionTitle
+from src.views.components.inputs import FilePathInput, LabeledInput
 
 
 class SeparateLedgerTab(QWidget):
@@ -16,7 +15,7 @@ class SeparateLedgerTab(QWidget):
 
     output_card: FormCard
     output_dir_input: FilePathInput
-    filename_input: StyledLineEdit
+    filename_input: LabeledInput
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -40,10 +39,10 @@ class SeparateLedgerTab(QWidget):
         self.output_card.add_widget(self.output_dir_input)
 
         # Output filename input
-        filename_title = SectionTitle("輸出檔案名稱")
-        self.output_card.add_widget(filename_title)
-
-        self.filename_input = StyledLineEdit(placeholder="輸入輸出檔名")
+        self.filename_input = LabeledInput(
+            label="輸出檔案名稱",
+            placeholder="輸入輸出檔名 (例如: 律師收入明細.xlsx)",
+        )
         self.output_card.add_widget(self.filename_input)
 
         layout.addWidget(self.output_card)
