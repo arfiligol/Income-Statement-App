@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTabWidget
 from src.views.components.cards import Card
 from src.views.components.inputs import FilePathInput
 from src.views.components.buttons import PrimaryButton
-from src.views.components.labels import StatusLabel
+from src.views.components.labels import LogDisplay
 from src.views.pages.workflow.auto_fill_tab import AutoFillTab
 from src.views.pages.workflow.separate_ledger_tab import SeparateLedgerTab
 
@@ -32,7 +32,7 @@ class WorkflowPage(QWidget):
     tab_widget: QTabWidget
     auto_fill_tab: AutoFillTab
     separate_ledger_tab: SeparateLedgerTab
-    status_label: StatusLabel
+    log_display: LogDisplay
     submit_button: PrimaryButton
 
     def __init__(self, parent: QWidget | None = None) -> None:
@@ -62,8 +62,6 @@ class WorkflowPage(QWidget):
 
         self.auto_fill_tab = AutoFillTab()
         self.separate_ledger_tab = SeparateLedgerTab()
-        self.auto_fill_tab = AutoFillTab()
-        self.separate_ledger_tab = SeparateLedgerTab()
         _ = self.separate_ledger_tab.selectOutputDirRequested.connect(
             self.selectOutputDirRequested.emit
         )
@@ -74,20 +72,26 @@ class WorkflowPage(QWidget):
 
         layout.addWidget(self.tab_widget, 1)
 
-        # Submit section
+        # Submit section with log display
         submit_card = Card()
+        submit_layout = QVBoxLayout()
+        submit_layout.setSpacing(12)
+
+        # Log display for status messages
+        self.log_display = LogDisplay()
+        submit_layout.addWidget(self.log_display)
+
+        # Submit button row
         submit_row = QHBoxLayout()
         submit_row.setSpacing(12)
+        submit_row.addStretch(1)
 
-        self.status_label = StatusLabel("")
-        submit_row.addWidget(self.status_label, 1)
-
-        self.submit_button = PrimaryButton("執行功能 (Submit)")
         self.submit_button = PrimaryButton("執行功能 (Submit)")
         _ = self.submit_button.clicked.connect(self.submitRequested.emit)
         submit_row.addWidget(self.submit_button)
 
-        submit_card.add_layout(submit_row)
+        submit_layout.addLayout(submit_row)
+        submit_card.add_layout(submit_layout)
         layout.addWidget(submit_card)
 
         # Initialize with first tab
@@ -112,9 +116,9 @@ class WorkflowPage(QWidget):
         """Get the output filename from the separate ledger tab."""
         return self.separate_ledger_tab.get_output_filename()
 
-    def set_status_message(self, message: str) -> None:
+    def set_status_message(self, message: str, msg_type: str = "info") -> None:
         """Set the status message."""
-        self.status_label.setText(message)
+        self.log_display.set_message(message, msg_type)
 
     def set_submit_state(self, state: str) -> None:
         """Set the submit button state (success, warning, danger)."""

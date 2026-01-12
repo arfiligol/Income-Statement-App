@@ -4,7 +4,7 @@ from __future__ import annotations
 from PySide6.QtWidgets import QWidget, QVBoxLayout
 
 from src.views.components.cards import InfoCard
-from src.views.components.labels import DescriptionLabel
+from src.views.components.labels import InstructionBox
 
 
 class AutoFillTab(QWidget):
@@ -27,15 +27,17 @@ class AutoFillTab(QWidget):
         )
         layout.addWidget(info_card)
 
-        # Additional instructions
-        instruction_label = DescriptionLabel(
-            "使用說明：\n"
-            + "1. 在上方選擇來源 Excel 檔案\n"
-            + "2. 點擊「執行功能」按鈕\n"
-            + "3. 若有無法自動判斷的項目，將彈出對話框供您手動選擇\n"
-            + "4. 選擇「跳過」可跳過單筆，「全跳過」可跳過所有後續項目\n"
-            + "5. 直接關閉對話框將取消整個操作"
+        # Instructions box with structured steps
+        instruction_box = InstructionBox(
+            title="使用說明",
+            instructions=[
+                "在上方選擇來源 Excel 檔案",
+                "點擊「執行功能」按鈕",
+                "若有無法自動判斷的項目，將彈出對話框供您手動選擇",
+                "選擇「跳過」可跳過單筆，「全跳過」可跳過所有後續項目",
+                "直接關閉對話框將取消整個操作",
+            ],
         )
-        layout.addWidget(instruction_label)
+        layout.addWidget(instruction_box)
 
         layout.addStretch(1)

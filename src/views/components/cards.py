@@ -43,10 +43,15 @@ class InfoCard(Card):
 class FormCard(Card):
     """A card designed to contain form elements."""
 
-    def __init__(self, title: str = "", parent=None) -> None:
+    def __init__(
+        self,
+        title: str = "",
+        icon: str = "⚙️",
+        parent: QWidget | None = None,
+    ) -> None:
         super().__init__(parent)
 
         if title:
-            self.title_label = QLabel(title)
-            self.title_label.setProperty("class", "section-title")
+            from src.views.components.labels import SectionTitle
+            self.title_label = SectionTitle(title, icon=icon)
             self._layout.addWidget(self.title_label)
