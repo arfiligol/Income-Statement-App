@@ -69,10 +69,11 @@ class DatabasePage(QWidget):
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)       # Fixed width for actions
         
         self.table.setColumnWidth(0, 200) # Default width for Source
-        self.table.setColumnWidth(2, 180) # Slightly wider for actions
+        self.table.setColumnWidth(2, 200) # Wider for actions to prevent squashing
         
         self.table.setAlternatingRowColors(True)
         self.table.verticalHeader().setVisible(False) # Hide row numbers
+        self.table.verticalHeader().setDefaultSectionSize(60) # Ensure rows are tall enough for buttons
         self.table.setShowGrid(False) # Cleaner look
         self.table.setDefaultDropAction(Qt.DropAction.IgnoreAction)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers) # Read-only
