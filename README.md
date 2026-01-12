@@ -8,6 +8,21 @@
 -   **自動填寫 (Auto Fill)**：根據摘要內容自動判斷並填入律師代碼，支援模糊比對與手動選擇。
 -   **自動更新**：整合 GitHub Releases，應用程式啟動時會自動檢查並下載最新版本。
 
+## 技術架構 (Technology Stack)
+
+本專案採用 **Clean Architecture** 與 **Flet** 進行現代化重構，確保高維護性與跨平台相容性。
+
+-   **UI Framework**: [Flet](https://flet.dev/) (基於 Flutter 的 Python 框架) - 提供流暢且反應迅速的 Material Design 3 使用者介面。
+-   **Architecture**: Scaleable / Clean Architecture
+    -   **Domain Layer**: DTOs (Data Transfer Objects) 定義資料結構。
+    -   **Data Layer**: Repository Pattern (SQLAlchemy, Excel) 負責資料存取與抽象化。
+    -   **UI Layer**: MVVM-like State Management (State + Logic 分離)。
+-   **Core Processing**:
+    -   [Pandas](https://pandas.pydata.org/): 高效能資料處理與分析。
+    -   [OpenPyXL](https://openpyxl.readthedocs.io/): Excel 檔案讀寫與格式化。
+-   **Database**: SQLite (透過 SQLAlchemy ORM 管理)。
+-   **Packaging**: [Briefcase](https://beeware.org/project/projects/tools/briefcase/) (跨平台打包工具)。
+
 ## 安裝說明 (開發者)
 
 本專案使用 `uv` 進行套件管理。
@@ -32,6 +47,15 @@
 
 ```bash
 uv run start
+```
+
+## 開發模式 (Hot Reload)
+
+Flet 支援 Hot Reload，在修改程式碼後會自動重整應用程式，適合開發時使用。
+
+```bash
+# 執行並監聽變更 (預設遞迴監聽目前的目錄)
+uv run flet run src/app.py
 ```
 
 ## 打包發布 (Packaging)
