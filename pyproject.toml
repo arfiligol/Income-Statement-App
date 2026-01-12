@@ -1,26 +1,20 @@
 [project]
 name = "mom-work-project"
-version = "0.1.0"
+version = "0.1.5"
 description = "Add your description here"
 requires-python = ">=3.13"
 dependencies = [
     "colorlog>=6.10.1",
-    "jupyter>=1.1.1",
-    "matplotlib>=3.10.7",
     "numpy>=2.3.5",
     "openpyxl>=3.1.5",
     "pandas>=2.3.3",
-    "pillow>=12.0.0",
     "pyside6>=6.10.1",
     "python-dotenv>=1.2.1",
     "qt-material>=2.17",
-    "quart>=0.20.0",
     "requests>=2.31.0",
-    "scipy>=1.16.3",
     "sqlalchemy>=2.0.44",
     "watchdog>=6.0.0",
     "xlrd>=2.0.2",
-    "pyinstaller>=6.3.0",
 ]
 
 [project.scripts]
@@ -29,6 +23,51 @@ start = "src.app:run"
 [dependency-groups]
 dev = [
     "basedpyright>=1.35.0",
+    "briefcase>=0.3.26",
+    "nuitka>=2.8.9",
+    "pyinstaller>=6.17.0",
     "ruff>=0.14.8",
+    "zstandard>=0.25.0",
 ]
+
+[tool.briefcase]
+project_name = "Income-Statement-App"
+bundle = "com.arfiligol"
+version = "0.1.5"
+url = "https://github.com/arfiligol/mom-work-project"
+license.file = "LICENSE"
+author = "arfiligol"
+
+[tool.briefcase.app.src]
+formal_name = "Income-Statement-App"
+description = "A helper application for ledger separation."
+long_description = "A helper application for accounting and ledger separation."
+sources = ["src"]
+requires = [
+    "colorlog>=6.10.1",
+    "numpy>=2.3.5",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.3",
+    "pyside6>=6.10.1",
+    "python-dotenv>=1.2.1",
+    "qt-material>=2.17",
+    "requests>=2.31.0",
+    "sqlalchemy>=2.0.44",
+    "watchdog>=6.0.0",
+    "xlrd>=2.0.2",
+]
+
+[tool.briefcase.app.src.macOS]
+requires = [
+    "std-nslog>=1.0.0",
+]
+
+[tool.briefcase.app.src.linux]
+requires = [
+    "systemd-python>=234",
+]
+
+[tool.briefcase.app.src.windows]
+requires = []
+
 
