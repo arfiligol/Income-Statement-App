@@ -168,6 +168,10 @@ class MainWindow(QtStyleTools, QMainWindow):
         """Get the output filename."""
         return self.workflow_page.get_output_filename()
 
+    def get_current_action(self) -> str:
+        """Get the current workflow action."""
+        return self.workflow_page.get_current_action()
+
     @Slot(str)
     def show_update_message(self, version: str) -> None:
         """Show the update available notification."""

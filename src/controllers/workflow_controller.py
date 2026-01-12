@@ -39,6 +39,9 @@ class WorkflowController(QObject):
         self.window.actionSelected.connect(self.on_action_selected)
         self.window.submitRequested.connect(self.on_submit)
 
+        # Initialize UI state with current action
+        self.on_action_selected(self.window.get_current_action())
+
     # ------------------------------------------------------------------
     @Slot()
     def select_source_file(self) -> None:
