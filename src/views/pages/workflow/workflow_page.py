@@ -49,8 +49,7 @@ class WorkflowPage(QWidget):
             button_text="選擇檔案",
             placeholder="尚未選擇來源檔案",
         )
-            placeholder="尚未選擇來源檔案",
-        )
+
         _ = self.source_input.browse_button.clicked.connect(
             self.selectSourceRequested.emit
         )

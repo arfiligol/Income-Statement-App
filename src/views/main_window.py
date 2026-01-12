@@ -31,6 +31,14 @@ class MainWindow(QtStyleTools, QMainWindow):
     submitRequested: Signal = Signal()
     updateRequested: Signal = Signal()
 
+    # Instance variable type annotations
+    navbar: Navbar
+    sidebar: Sidebar
+    content_area: ContentArea
+    workflow_page: WorkflowPage
+    database_page: DatabasePage
+    settings_page: QWidget
+
     def __init__(self) -> None:
         super().__init__()
 
@@ -97,7 +105,7 @@ class MainWindow(QtStyleTools, QMainWindow):
         main_layout.addWidget(right_container, 1)
 
         # Show default page
-        self.content_area.show_page("workflow")
+        _ = self.content_area.show_page("workflow")
 
     def _create_placeholder_page(self, text: str) -> QWidget:
         """Create a placeholder page for development."""
@@ -112,22 +120,22 @@ class MainWindow(QtStyleTools, QMainWindow):
     def _wire_signals(self) -> None:
         """Connect internal signals to external signals."""
         # Navbar signals
-        self.navbar.hamburgerClicked.connect(self.sidebar.toggle_visibility)
-        self.navbar.updateClicked.connect(self.updateRequested.emit)
+        _ = self.navbar.hamburgerClicked.connect(self.sidebar.toggle_visibility)
+        _ = self.navbar.updateClicked.connect(self.updateRequested.emit)
 
         # Sidebar navigation
-        self.sidebar.navigationChanged.connect(self._on_navigation_changed)
+        _ = self.sidebar.navigationChanged.connect(self._on_navigation_changed)
 
         # Workflow page signals
-        self.workflow_page.selectSourceRequested.connect(self.selectSourceRequested.emit)
-        self.workflow_page.selectOutputDirRequested.connect(self.selectOutputDirRequested.emit)
-        self.workflow_page.tabChanged.connect(self.actionSelected.emit)
-        self.workflow_page.submitRequested.connect(self.submitRequested.emit)
+        _ = self.workflow_page.selectSourceRequested.connect(self.selectSourceRequested.emit)
+        _ = self.workflow_page.selectOutputDirRequested.connect(self.selectOutputDirRequested.emit)
+        _ = self.workflow_page.tabChanged.connect(self.actionSelected.emit)
+        _ = self.workflow_page.submitRequested.connect(self.submitRequested.emit)
 
     @Slot(str)
     def _on_navigation_changed(self, target: str) -> None:
         """Handle sidebar navigation change."""
-        self.content_area.show_page(target)
+        _ = self.content_area.show_page(target)
 
     # Public interface methods (for controller)
     def set_source_path(self, path: str) -> None:

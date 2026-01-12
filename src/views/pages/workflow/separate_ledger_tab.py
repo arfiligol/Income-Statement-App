@@ -14,7 +14,11 @@ class SeparateLedgerTab(QWidget):
 
     selectOutputDirRequested: Signal = Signal()
 
-    def __init__(self, parent=None) -> None:
+    output_card: FormCard
+    output_dir_input: FilePathInput
+    filename_input: StyledLineEdit
+
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
         layout = QVBoxLayout(self)
@@ -30,7 +34,7 @@ class SeparateLedgerTab(QWidget):
             button_text="選擇資料夾",
             placeholder="尚未選擇資料夾",
         )
-        self.output_dir_input.browse_button.clicked.connect(
+        _ = self.output_dir_input.browse_button.clicked.connect(
             self.selectOutputDirRequested.emit
         )
         self.output_card.add_widget(self.output_dir_input)

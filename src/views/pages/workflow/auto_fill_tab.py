@@ -10,7 +10,7 @@ from src.views.components.labels import DescriptionLabel
 class AutoFillTab(QWidget):
     """Tab content for the Auto Fill Lawyer Codes feature."""
 
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
         layout = QVBoxLayout(self)
@@ -20,8 +20,10 @@ class AutoFillTab(QWidget):
         # Feature description card
         info_card = InfoCard(
             title="摘要抓律師代碼",
-            description="此功能會自動掃描 Excel 檔案中「摘要」欄位的內容，"
-            "並嘗試根據已知的律師代碼進行比對。若成功比對，將自動填入「備註」欄位。",
+            description=(
+                "此功能會自動掃描 Excel 檔案中「摘要」欄位的內容，"
+                "並嘗試根據已知的律師代碼進行比對。若成功比對，將自動填入「備註」欄位。"
+            ),
         )
         layout.addWidget(info_card)
 
