@@ -12,3 +12,5 @@ Welcome to the documentation for the Income Statement App.
   - [Workflow](how-to/workflow/index.md)
 - **[Reference](reference/index.md)**: Technical references and API details.
 - **[Requirements](requirements/index.md)**: Business logic and specifications.
+  - [Core Workflows](requirements/service/core-workflows.md)
+  - [Lawyer Code Aliases](requirements/service/lawyer-code-aliases.md)

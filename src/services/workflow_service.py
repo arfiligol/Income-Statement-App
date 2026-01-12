@@ -12,8 +12,10 @@ from openpyxl.cell import Cell
 
 from src.services.dao.lawyer_dao import (
     ensure_lawyers as _ensure_lawyers,
+    ensure_lawyers as _ensure_lawyers,
     get_lawyers as _get_lawyers,
 )
+from src.services.dao.alias_dao import get_alias as _get_alias
 
 
 class WorkflowProcessingError(Exception):
@@ -208,6 +210,20 @@ def auto_fill_lawyer_codes(
                 skip_manual_prompts = True
         else:
             register_lawyers(matched_codes)
+
+        # Apply aliases
+        final_codes: list[str] = []
+        for code in matched_codes:
+            alias = _get_alias(code)
+            if alias:
+                # Split comma-separated targets and strip
+                targets = [t.strip() for t in alias.target_codes.split(",") if t.strip()]
+                final_codes.extend(targets)
+            else:
+                final_codes.append(code)
+        
+        # Deduplicate final codes
+        matched_codes = _deduplicate_preserve_order(final_codes)
 
         # Cast to Cell to avoid MergedCell assignment error
         if isinstance(remark_cell, Cell):
