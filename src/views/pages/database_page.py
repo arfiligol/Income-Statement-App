@@ -128,10 +128,11 @@ class DatabasePage(QWidget):
             
             # Actions
             action_widget = QWidget()
-            action_widget.setStyleSheet("background: transparent;") # Prevent ugly background box
+            action_widget.setMinimumWidth(160) # Ensure enough space for buttons
+            action_widget.setStyleSheet("background: transparent;")
             action_layout = QHBoxLayout(action_widget)
-            action_layout.setContentsMargins(8, 4, 8, 4) # Add horizontal padding
-            action_layout.setSpacing(8)
+            action_layout.setContentsMargins(8, 4, 8, 4)
+            action_layout.setSpacing(12) # Use larger spacing
             action_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
             
             edit_btn = SecondaryButton("編輯")
