@@ -61,23 +61,24 @@ class MainWindow(QtStyleTools, QMainWindow):
         central = QWidget()
         self.setCentralWidget(central)
 
-        # Main vertical layout (Navbar on top, body below)
-        main_layout = QVBoxLayout(central)
+        # Main horizontal layout (Sidebar on left, Navbar + Content on right)
+        main_layout = QHBoxLayout(central)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
+        # Sidebar (full height on left)
+        self.sidebar = Sidebar()
+        main_layout.addWidget(self.sidebar)
+
+        # Right side (Navbar on top, Content below)
+        right_container = QWidget()
+        right_layout = QVBoxLayout(right_container)
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.setSpacing(0)
+
         # Navbar
         self.navbar = Navbar(title="Income Statement App v0.1.5")
-        main_layout.addWidget(self.navbar)
-
-        # Body (Sidebar + Content)
-        body_layout = QHBoxLayout()
-        body_layout.setContentsMargins(0, 0, 0, 0)
-        body_layout.setSpacing(0)
-
-        # Sidebar
-        self.sidebar = Sidebar()
-        body_layout.addWidget(self.sidebar)
+        right_layout.addWidget(self.navbar)
 
         # Content Area
         self.content_area = ContentArea()
@@ -91,9 +92,9 @@ class MainWindow(QtStyleTools, QMainWindow):
         self.content_area.add_page("database", self.database_page)
         self.content_area.add_page("settings", self.settings_page)
 
-        body_layout.addWidget(self.content_area, 1)
+        right_layout.addWidget(self.content_area, 1)
 
-        main_layout.addLayout(body_layout, 1)
+        main_layout.addWidget(right_container, 1)
 
         # Show default page
         self.content_area.show_page("workflow")
