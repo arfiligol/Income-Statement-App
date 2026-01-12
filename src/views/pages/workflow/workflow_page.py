@@ -26,6 +26,15 @@ class WorkflowPage(QWidget):
         1: "separate_the_ledger",
     }
 
+    # Instance variable type annotations
+    source_card: Card
+    source_input: FilePathInput
+    tab_widget: QTabWidget
+    auto_fill_tab: AutoFillTab
+    separate_ledger_tab: SeparateLedgerTab
+    status_label: StatusLabel
+    submit_button: PrimaryButton
+
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
 
@@ -40,7 +49,9 @@ class WorkflowPage(QWidget):
             button_text="選擇檔案",
             placeholder="尚未選擇來源檔案",
         )
-        self.source_input.browse_button.clicked.connect(
+            placeholder="尚未選擇來源檔案",
+        )
+        _ = self.source_input.browse_button.clicked.connect(
             self.selectSourceRequested.emit
         )
         self.source_card.add_widget(self.source_input)
@@ -52,13 +63,15 @@ class WorkflowPage(QWidget):
 
         self.auto_fill_tab = AutoFillTab()
         self.separate_ledger_tab = SeparateLedgerTab()
-        self.separate_ledger_tab.selectOutputDirRequested.connect(
+        self.auto_fill_tab = AutoFillTab()
+        self.separate_ledger_tab = SeparateLedgerTab()
+        _ = self.separate_ledger_tab.selectOutputDirRequested.connect(
             self.selectOutputDirRequested.emit
         )
 
-        self.tab_widget.addTab(self.auto_fill_tab, "摘要抓律師代碼")
-        self.tab_widget.addTab(self.separate_ledger_tab, "律師收入明細")
-        self.tab_widget.currentChanged.connect(self._on_tab_changed)
+        _ = self.tab_widget.addTab(self.auto_fill_tab, "摘要抓律師代碼")
+        _ = self.tab_widget.addTab(self.separate_ledger_tab, "律師收入明細")
+        _ = self.tab_widget.currentChanged.connect(self._on_tab_changed)
 
         layout.addWidget(self.tab_widget, 1)
 
@@ -71,7 +84,8 @@ class WorkflowPage(QWidget):
         submit_row.addWidget(self.status_label, 1)
 
         self.submit_button = PrimaryButton("執行功能 (Submit)")
-        self.submit_button.clicked.connect(self.submitRequested.emit)
+        self.submit_button = PrimaryButton("執行功能 (Submit)")
+        _ = self.submit_button.clicked.connect(self.submitRequested.emit)
         submit_row.addWidget(self.submit_button)
 
         submit_card.add_layout(submit_row)

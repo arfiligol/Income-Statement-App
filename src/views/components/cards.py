@@ -1,7 +1,7 @@
 """Reusable card components for content containers."""
 from __future__ import annotations
 
-from PySide6.QtWidgets import QFrame, QVBoxLayout, QLabel
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QLabel, QWidget, QLayout
 
 
 class Card(QFrame):
@@ -14,11 +14,11 @@ class Card(QFrame):
         self._layout.setContentsMargins(16, 16, 16, 16)
         self._layout.setSpacing(12)
 
-    def add_widget(self, widget) -> None:
+    def add_widget(self, widget: QWidget) -> None:
         """Add a widget to the card's layout."""
         self._layout.addWidget(widget)
 
-    def add_layout(self, layout) -> None:
+    def add_layout(self, layout: QLayout) -> None:
         """Add a layout to the card's layout."""
         self._layout.addLayout(layout)
 
