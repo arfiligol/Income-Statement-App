@@ -5,13 +5,20 @@ from PySide6.QtWidgets import (
     QProgressBar,
     QPushButton,
     QVBoxLayout,
+    QWidget,
 )
 
 
 class UpdateProgressDialog(QDialog):
     canceled = Signal()
 
-    def __init__(self, parent=None):
+    status_label: QLabel
+    progress_bar: QProgressBar
+    error_label: QLabel
+    cancel_button: QPushButton
+    close_button: QPushButton
+
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowTitle("更新下載中")
         self.setFixedSize(400, 200)
@@ -46,12 +53,12 @@ class UpdateProgressDialog(QDialog):
 
         # Cancel button (visible during download)
         self.cancel_button = QPushButton("取消")
-        self.cancel_button.clicked.connect(self._on_cancel_clicked)
+        _ = self.cancel_button.clicked.connect(self._on_cancel_clicked)
         layout.addWidget(self.cancel_button)
 
         # Close button (only for error state)
         self.close_button = QPushButton("關閉")
-        self.close_button.clicked.connect(self.accept)
+        _ = self.close_button.clicked.connect(self.accept)
         self.close_button.setVisible(False)
         layout.addWidget(self.close_button)
 

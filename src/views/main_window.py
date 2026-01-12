@@ -49,7 +49,7 @@ class MainWindow(QtStyleTools, QMainWindow):
         self.resize(1100, 720)
 
         # Apply qt_material extra settings
-        self.extra = {
+        self.extra: dict[str, str] = {
             "danger": "#dc3545",
             "warning": "#ffc107",
             "success": "#17a2b8",
@@ -57,7 +57,7 @@ class MainWindow(QtStyleTools, QMainWindow):
             "density_scale": "0",
             "button_shape": "default",
         }
-        self.set_extra(self.extra)
+        self.set_extra(self.extra)  # pyright: ignore[reportUnknownMemberType]
 
         # Build the UI
         self._build_ui()
