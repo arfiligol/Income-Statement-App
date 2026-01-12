@@ -34,21 +34,23 @@ class IconButton(QPushButton):
         super().__init__(text, parent)
         self.setProperty("class", "icon-button")
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setFixedSize(40, 40)
+        self.setFixedSize(44, 44)
         self.setFlat(True)
         self.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
                 border: none;
-                font-size: 20px;
-                color: #90caf9;
+                font-size: 24px;
+                font-weight: bold;
+                color: #b0bec5;
             }
             QPushButton:hover {
-                background-color: rgba(255, 255, 255, 0.1);
+                background-color: rgba(144, 202, 249, 0.15);
                 border-radius: 8px;
+                color: #90caf9;
             }
             QPushButton:pressed {
-                background-color: rgba(255, 255, 255, 0.2);
+                background-color: rgba(144, 202, 249, 0.3);
             }
         """)
 
