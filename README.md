@@ -1,4 +1,4 @@
-# Mom Work Project
+# Income Statement App
 
 這是一個協助律師事務所處理帳務與 Excel 明細分類帳的桌面應用程式。
 
@@ -14,8 +14,8 @@
 
 1.  複製專案：
     ```bash
-    git clone https://github.com/arfiligol/mom-work-project.git
-    cd mom-work-project
+    git clone https://github.com/arfiligol/Income-Statement-App.git
+    cd Income-Statement-App
     ```
 
 2.  安裝依賴：
@@ -34,15 +34,26 @@
 uv run start
 ```
 
-## 打包發布
+## 打包發布 (Packaging)
 
-使用 PyInstaller 打包成單一執行檔：
+本專案採用 **Briefcase** 進行跨平台打包。
 
-```bash
-uv run pyinstaller build.spec
-```
+1.  **建立專案骨架 (Create)**：
+    ```bash
+    uv run briefcase create
+    ```
 
-執行後，可在 `dist/` 資料夾中找到 `mom-work-project.exe`。
+2.  **建置應用程式 (Build)**：
+    ```bash
+    uv run briefcase build
+    ```
+
+3.  **打包安裝檔 (Package)**：
+    ```bash
+    uv run briefcase package
+    ```
+
+打包完成後的安裝檔或執行檔將位於 `build/` 目錄中對應的平台資料夾內（例如 `build/Income-Statement-App/windows/app` 或 `build/Income-Statement-App/macos/app`）。
 
 ## 授權 (License)
 

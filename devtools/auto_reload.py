@@ -29,8 +29,8 @@ class RestartHandler(FileSystemEventHandler):
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Auto-restart PySide app on changes")
-    _ = parser.add_argument("path", nargs="?", default=".", help="Path to watch")
-    _ = parser.add_argument("--cmd", nargs=argparse.REMAINDER, default=[sys.executable, "pyside_main.py"])
+    _ = parser.add_argument("path", nargs="?", default="src", help="Path to watch")
+    _ = parser.add_argument("--cmd", nargs=argparse.REMAINDER, default=["uv", "run", "start"])
     args = parser.parse_args()
 
     handler = RestartHandler(args.cmd)

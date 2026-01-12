@@ -19,6 +19,7 @@ class WorkflowPage(QWidget):
         self.output_dir_path: QLabel
         self.select_output_dir_button: QPushButton
         self.filename_input: QLineEdit
+        self.output_options_container: QWidget
         self.status_label: QLabel
         self.submit_button: QPushButton
 
@@ -100,6 +101,12 @@ class WorkflowPage(QWidget):
         _ = title.setProperty("class", "section-title")
         frame_layout.addWidget(title)
 
+        # Container for output options (dir + filename)
+        self.output_options_container = QWidget()
+        container_layout = QVBoxLayout(self.output_options_container)
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        container_layout.setSpacing(16)
+
         dir_row = QHBoxLayout()
         dir_row.setSpacing(12)
         dir_label = QLabel("輸出資料夾")
@@ -111,7 +118,7 @@ class WorkflowPage(QWidget):
         dir_row.addWidget(dir_label)
         dir_row.addWidget(self.output_dir_path, 1)
         dir_row.addWidget(self.select_output_dir_button)
-        frame_layout.addLayout(dir_row)
+        # frame_layout.addLayout(dir_row)  # Moved to container
 
         filename_row = QHBoxLayout()
         filename_row.setSpacing(12)
@@ -121,7 +128,14 @@ class WorkflowPage(QWidget):
         self.filename_input.setObjectName("filenameInput")
         filename_row.addWidget(filename_label)
         filename_row.addWidget(self.filename_input, 1)
-        frame_layout.addLayout(filename_row)
+        # frame_layout.addLayout(filename_row) # Moved to container
+
+        container_layout.addLayout(dir_row)
+        container_layout.addLayout(filename_row)
+        frame_layout.addWidget(self.output_options_container)
+        
+        # Default hidden until an action that needs it is selected
+        self.output_options_container.setVisible(False)
 
         submit_row = QHBoxLayout()
         submit_row.setSpacing(12)
@@ -139,6 +153,10 @@ class WorkflowPage(QWidget):
     def set_action_highlight(self, action_name: str | None) -> None:
         self.auto_fill_button.setChecked(action_name == "auto_fill_remark")
         self.separate_ledger_button.setChecked(action_name == "separate_the_ledger")
+
+        # Hide output options if auto_fill_remark is selected
+        show_output_options = action_name == "separate_the_ledger"
+        self.output_options_container.setVisible(show_output_options)
 
     def set_status_message(self, message: str) -> None:
         self.status_label.setText(message)

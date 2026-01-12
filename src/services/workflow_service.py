@@ -20,7 +20,11 @@ class WorkflowProcessingError(Exception):
     """Raised when workflow parsing fails."""
 
 
-WORKFLOW_TARGET_SHEET = "明細分類帳(依科目+部門)-0_備註欄加上承辦律師"
+class UserAbortedError(Exception):
+    """Raised when user aborts the workflow (e.g. closes a dialog)."""
+
+
+WORKFLOW_TARGET_SHEET = "明細分類帳"
 
 
 @dataclass(frozen=True)
@@ -54,7 +58,11 @@ PromptHandler = Callable[[AutoFillPrompt], AutoFillResponse | None]
 
 
 def build_separate_ledger(source_path: str) -> SeparateLedgerResult:
-    """Parse the source workbook and produce the separated ledger rows."""
+    """
+    執行「明細分帳」功能：
+    讀取來源 Excel 檔案，根據「備註」欄位的律師代碼，自動將借貸金額拆分給各個負責律師。
+    最後回傳拆分後的資料列與總金額，供後續寫入新的 Excel。
+    """
 
     read_engine = _get_excel_read_engine(source_path)
     try:
@@ -99,6 +107,12 @@ def auto_fill_lawyer_codes(
     *,
     prompt_handler: PromptHandler,
 ) -> AutoFillResult:
+    """
+    執行「自動填寫律師代碼」功能：
+    掃描 Excel 檔案中的「摘要」欄位，嘗試比對已知的律師代碼。
+    如果比對成功，自動填入「備註」欄位。
+    如果比對不到且自動模式未跳過，則會呼叫 prompt_handler 讓使用者手動選擇。
+    """
     read_engine = _get_excel_read_engine(workbook_path)
 
     try:

@@ -13,7 +13,7 @@ from threading import Thread
 logger = logging.getLogger(__name__)
 
 REPO_OWNER = "arfiligol"
-REPO_NAME = "mom-work-project"
+REPO_NAME = "Income-Statement-App"
 GITHUB_API_URL = (
     f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/releases/latest"
 )
@@ -30,7 +30,7 @@ class UpdateService:
     def __init__(self, current_version: str):
         self.current_version = current_version
         self._available_update: Optional[UpdateInfo] = None
-        self._temp_dir = tempfile.mkdtemp(prefix="mom_update_")
+        self._temp_dir = tempfile.mkdtemp(prefix="isa_update_")
         self._cancelled = False
 
     def check_for_updates(self) -> Optional[UpdateInfo]:
@@ -116,7 +116,7 @@ class UpdateService:
         completion_callback: Optional[callable] = None,
     ) -> None:
         try:
-            download_path = os.path.join(self._temp_dir, "MomWorkProject_Setup.msi")
+            download_path = os.path.join(self._temp_dir, "IncomeStatementApp_Setup.msi")
             logging.info("Downloading update from %s...", update_info.download_url)
 
             with requests.get(update_info.download_url, stream=True) as r:

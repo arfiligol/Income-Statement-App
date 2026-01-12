@@ -32,6 +32,7 @@ class LawyerSelectionDialog(QDialog):
 
         self.skip_remaining: bool = False
         self.selected_codes: list[str] = []
+        self.user_action: str = "abort"  # default if closed via X
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 16, 16, 16)
@@ -65,12 +66,12 @@ class LawyerSelectionDialog(QDialog):
         button_row = QHBoxLayout()
         button_row.addStretch(1)
 
-        self.skip_button: QPushButton = QPushButton("跳過後續手動")
+        self.skip_button: QPushButton = QPushButton("全跳過")
         _ = self.skip_button.clicked.connect(self._on_skip)
         button_row.addWidget(self.skip_button)
 
-        self.cancel_button: QPushButton = QPushButton("取消")
-        _ = self.cancel_button.clicked.connect(self.reject)
+        self.cancel_button: QPushButton = QPushButton("跳過")
+        _ = self.cancel_button.clicked.connect(self._on_skip_single)
         button_row.addWidget(self.cancel_button)
 
         self.confirm_button: QPushButton = QPushButton("確認")
@@ -80,6 +81,7 @@ class LawyerSelectionDialog(QDialog):
         layout.addLayout(button_row)
 
     def _on_confirm(self) -> None:
+        self.user_action = "confirm"
         selected = [item.text() for item in self.list_widget.selectedItems()]
         new_codes_text = self.new_code_input.text().strip()
         if new_codes_text:
@@ -101,6 +103,11 @@ class LawyerSelectionDialog(QDialog):
         self.accept()
 
     def _on_skip(self) -> None:
+        self.user_action = "skip_all"
         self.skip_remaining = True
         self.selected_codes = []
         self.accept()
+
+    def _on_skip_single(self) -> None:
+        self.user_action = "skip_single"
+        self.reject()
