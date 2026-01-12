@@ -66,10 +66,10 @@ class DatabasePage(QWidget):
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive) # Allow user to resize source
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)     # Targets take remaining space
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents) # Fit buttons exactly
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)       # Fixed width is most stable for widgets
         
         self.table.setColumnWidth(0, 200) # Default width for Source
-        # Action column width is now automatic
+        self.table.setColumnWidth(2, 200) # Fixed width for actions (148px content + padding)
         
         self.table.setAlternatingRowColors(True)
         self.table.verticalHeader().setVisible(False) # Hide row numbers
