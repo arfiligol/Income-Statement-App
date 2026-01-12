@@ -21,7 +21,7 @@ class WorkflowPage(QWidget):
     submitRequested: Signal = Signal()
 
     # Action name mapping
-    ACTION_MAP = {
+    ACTION_MAP: dict[int, str] = {
         0: "auto_fill_remark",
         1: "separate_the_ledger",
     }
@@ -35,7 +35,7 @@ class WorkflowPage(QWidget):
     status_label: StatusLabel
     submit_button: PrimaryButton
 
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
         layout = QVBoxLayout(self)

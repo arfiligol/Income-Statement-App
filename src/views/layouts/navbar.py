@@ -1,7 +1,7 @@
 """Top navigation bar component."""
 from __future__ import annotations
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QSizePolicy, QWidget
 
 from src.views.components.buttons import IconButton
@@ -13,7 +13,15 @@ class Navbar(QFrame):
     hamburgerClicked: Signal = Signal()
     updateClicked: Signal = Signal()
 
-    def __init__(self, title: str = "Income Statement App", parent=None) -> None:
+    hamburger_btn: IconButton
+    title_label: QLabel
+    update_btn: IconButton
+
+    def __init__(
+        self,
+        title: str = "Income Statement App",
+        parent: QWidget | None = None
+    ) -> None:
         super().__init__(parent)
         self.setProperty("class", "navbar")
         self.setFixedHeight(56)
@@ -25,7 +33,7 @@ class Navbar(QFrame):
         # Hamburger menu button
         self.hamburger_btn = IconButton("☰")
         self.hamburger_btn.setToolTip("Toggle sidebar")
-        self.hamburger_btn.clicked.connect(self.hamburgerClicked.emit)
+        _ = self.hamburger_btn.clicked.connect(self.hamburgerClicked.emit)
         layout.addWidget(self.hamburger_btn)
 
         # App title
@@ -43,7 +51,7 @@ class Navbar(QFrame):
         self.update_btn = IconButton("⬆")
         self.update_btn.setToolTip("發現新版本 (點擊更新)")
         self.update_btn.setVisible(False)
-        self.update_btn.clicked.connect(self.updateClicked.emit)
+        _ = self.update_btn.clicked.connect(self.updateClicked.emit)
         layout.addWidget(self.update_btn)
 
     def show_update_available(self, version: str) -> None:

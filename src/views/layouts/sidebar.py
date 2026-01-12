@@ -1,7 +1,7 @@
 """Collapsible sidebar component for navigation."""
 from __future__ import annotations
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QButtonGroup
 
 from src.views.components.buttons import NavButton
@@ -12,7 +12,10 @@ class Sidebar(QFrame):
 
     navigationChanged: Signal = Signal(str)  # Emits the navigation target name
 
-    def __init__(self, parent=None) -> None:
+    _nav_group: QButtonGroup
+    _nav_buttons: dict[str, NavButton]
+
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setProperty("class", "sidebar")
         self.setFixedWidth(180)
@@ -36,7 +39,7 @@ class Sidebar(QFrame):
         layout.addStretch(1)
 
         # Connect button group signal
-        self._nav_group.buttonClicked.connect(self._on_nav_clicked)
+        _ = self._nav_group.buttonClicked.connect(self._on_nav_clicked)
 
         # Default selection
         self._nav_buttons["workflow"].setChecked(True)
@@ -49,10 +52,10 @@ class Sidebar(QFrame):
         self._nav_group.addButton(btn)
         layout.addWidget(btn)
 
-    def _on_nav_clicked(self, button: NavButton) -> None:
+    def _on_nav_clicked(self, button) -> None:
         """Handle navigation button click."""
         target = button.property("nav-target")
-        if target:
+        if target and isinstance(target, str):
             self.navigationChanged.emit(target)
 
     def select_item(self, name: str) -> None:

@@ -24,7 +24,7 @@ class ContentArea(QFrame):
     def add_page(self, name: str, widget: QWidget) -> None:
         """Add a page to the content area."""
         self._pages[name] = widget
-        self._stack.addWidget(widget)
+        _ = self._stack.addWidget(widget)
 
     def show_page(self, name: str) -> bool:
         """Switch to the specified page. Returns True if successful."""
