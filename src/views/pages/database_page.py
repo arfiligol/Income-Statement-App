@@ -117,33 +117,37 @@ class DatabasePage(QWidget):
             # Source
             source_item = QTableWidgetItem(alias.source_code)
             source_item.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
+            source_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row_idx, 0, source_item)
             
             # Targets
             target_item = QTableWidgetItem(alias.target_codes)
             target_item.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
+            target_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row_idx, 1, target_item)
             
             # Actions
             action_widget = QWidget()
             action_layout = QHBoxLayout(action_widget)
-            action_layout.setContentsMargins(4, 2, 4, 2)
+            action_layout.setContentsMargins(4, 4, 4, 4)
             action_layout.setSpacing(8)
+            action_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
             
             edit_btn = SecondaryButton("編輯")
-            edit_btn.setFixedSize(60, 28)
+            edit_btn.setFixedSize(60, 32)
+            edit_btn.setCursor(Qt.CursorShape.PointingHandCursor)
             # Use default param to capture loop variable
             edit_btn.clicked.connect(lambda checked=False, s=alias.source_code, t=alias.target_codes: self._on_edit(s, t))
             
             delete_btn = SecondaryButton("刪除")
-            delete_btn.setFixedSize(60, 28)
+            delete_btn.setFixedSize(60, 32)
+            delete_btn.setCursor(Qt.CursorShape.PointingHandCursor)
             delete_btn.setProperty("class", "danger") # Assuming danger class exists or just relying on red text if styled
-            delete_btn.setStyleSheet("color: #ef5350; border-color: rgba(239, 83, 80, 0.5);")
+            delete_btn.setStyleSheet("color: #ef5350; border: 1px solid rgba(239, 83, 80, 0.5); border-radius: 4px;")
             delete_btn.clicked.connect(lambda checked=False, s=alias.source_code: self._on_delete(s))
             
             action_layout.addWidget(edit_btn)
             action_layout.addWidget(delete_btn)
-            action_layout.addStretch(1)
             
             self.table.setCellWidget(row_idx, 2, action_widget)
 
