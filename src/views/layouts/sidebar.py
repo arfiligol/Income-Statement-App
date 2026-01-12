@@ -28,8 +28,8 @@ class Sidebar(QFrame):
         self._nav_group = QButtonGroup(self)
         self._nav_group.setExclusive(True)
 
-        self._nav_group.setExclusive(True)
-
+        # Navigation items dictionary
+        self._nav_buttons = {}
 
         # Add default navigation items
         self._add_nav_item("workflow", "📋 工作包", layout)
