@@ -1,7 +1,12 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
-name = "mom-work-project"
+name = "income-statement-app"
 version = "0.1.5"
-description = "Add your description here"
+description = "A helper application for ledger separation and accounting."
+readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "colorlog>=6.10.1",
@@ -34,7 +39,7 @@ dev = [
 project_name = "Income-Statement-App"
 bundle = "com.arfiligol"
 version = "0.1.5"
-url = "https://github.com/arfiligol/mom-work-project"
+url = "https://github.com/arfiligol/Income-Statement-App"
 license.file = "LICENSE"
 author = "arfiligol"
 
@@ -67,6 +72,8 @@ requires = [
     "systemd-python>=234",
 ]
 
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
 [tool.briefcase.app.src.windows]
 requires = []
 
