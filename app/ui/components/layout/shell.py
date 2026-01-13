@@ -36,7 +36,7 @@ def app_shell(content_builder: Callable):
         "bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800"
     ) as left_drawer:
         with ui.column().classes("w-full gap-2 p-4"):
-            ui.label("MAIN MENU").classes("text-xs font-bold text-slate-400 mb-2")
+            ui.label("主選單").classes("text-xs font-bold text-slate-400 mb-2")
 
             def nav_btn(label, icon, target):
                 ui.button(
@@ -45,8 +45,8 @@ def app_shell(content_builder: Callable):
                     "w-full justify-start text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
                 )
 
-            nav_btn("Toolbox", "handyman", "/")
-            nav_btn("Database", "storage", "/database")
+            nav_btn("資料處理 (Toolbox)", "handyman", "/")
+            nav_btn("資料庫 (Database)", "storage", "/database")
 
     # 4. Main Content
     with ui.column().classes(
