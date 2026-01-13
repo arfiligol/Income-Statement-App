@@ -37,7 +37,7 @@ class StatementEditorPage:
 
         # Step 1: File Selection
         with ui.card().classes(
-            "w-full p-6 rounded-xl border border-slate-200 shadow-sm dark:bg-slate-800 dark:border-slate-700 mb-6"
+            "w-full p-6 rounded-xl border border-slate-200 shadow-sm bg-white dark:bg-slate-800 dark:border-slate-700 text-slate-900 dark:text-slate-100 mb-6"
         ):
             with ui.row().classes("items-center justify-between w-full"):
                 with ui.row().classes("items-center gap-4"):

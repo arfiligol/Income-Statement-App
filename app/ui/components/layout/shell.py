@@ -50,6 +50,6 @@ def app_shell(content_builder: Callable):
 
     # 4. Main Content
     with ui.column().classes(
-        "w-full p-8 bg-white dark:bg-slate-950 min-h-screen text-slate-900 dark:text-slate-100"
+        "w-full p-8 bg-white dark:bg-slate-900 min-h-screen text-slate-900 dark:text-slate-100"
     ):
         content_builder()
