@@ -1,8 +1,4 @@
-﻿import flet as ft
-from src.ui.main import main
+﻿from src.ui.main import run
 
-def run():
-    ft.run(main)
-
-if __name__ == "__main__":
+if __name__ in {"__main__", "__mp_main__"}:
     run()

@@ -38,7 +38,7 @@ class WorkflowService:
         self.excel_repo = excel_repo
         self.report_service = report_service
 
-    def run_separate_ledger(self, source_path: str, output_path: str) -> SeparateLedgerResultDTO:
+    async def run_separate_ledger(self, source_path: str, output_path: str) -> SeparateLedgerResultDTO:
         """Run the separate ledger workflow."""
         try:
             df, _ = self.excel_repo.read_dataframe(source_path)
@@ -66,11 +66,11 @@ class WorkflowService:
         )
         
         # Write Report
-        self.report_service.write_separate_ledger_report(output_path, result_dto)
+        await self.report_service.write_separate_ledger_report(output_path, result_dto)
         
         return result_dto
 
-    def run_auto_fill(self, workbook_path: str) -> AutoFillResultDTO:
+    async def run_auto_fill(self, workbook_path: str) -> AutoFillResultDTO:
         """Run the auto-fill lawyer codes workflow."""
         try:
             df, sheet_name = self.excel_repo.read_dataframe(workbook_path)
@@ -131,7 +131,7 @@ class WorkflowService:
                     known_codes=list(known_codes_set)
                 )
                 # Interaction
-                response_tuple = self.interaction.select_lawyers(
+                response_tuple = await self.interaction.select_lawyers(
                     summary_text=prompt.summary,
                     row_number=prompt.row_number,
                     available_codes=prompt.known_codes

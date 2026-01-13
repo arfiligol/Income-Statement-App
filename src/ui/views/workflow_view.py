@@ -1,239 +1,291 @@
-import flet as ft
-from src.ui.state.workflow_state import WorkflowState
+import os
+import shutil
 
-class WorkflowView(ft.Column):
-    def __init__(self, state: WorkflowState):
-        super().__init__(expand=True, spacing=0) # Main padding handled by Container in main.py
-        self.state = state
-        self.state.bind(self.update_ui)
-        
-        self.file_picker = ft.FilePicker()
-        
-        # UI Elements
-        self.file_path_text = ft.Text("尚未選擇來源檔案", italic=True, size=13, color=ft.Colors.ON_SURFACE_VARIANT)
-        self.log_view = ft.ListView(expand=True, spacing=4, auto_scroll=True)
-        
-        # Submit Button
-        self.submit_btn = ft.Button(
-            "執行功能 (Submit)", 
-            icon=ft.Icons.PLAY_ARROW_ROUNDED,
-            style=ft.ButtonStyle(
-                color=ft.Colors.WHITE,
-                bgcolor={ft.ControlState.HOVERED: ft.Colors.INDIGO_700, "": ft.Colors.INDIGO_600},
-                shape=ft.RoundedRectangleBorder(radius=12),
-                padding=16,
-            ),
-            on_click=self.handle_submit,
-            disabled=True
-        )
+from nicegui import events, ui
 
-        # Custom Tab System Setup
-        self.selected_tab_index = 0
-        self.tab_contents = [
-            self._build_auto_fill_tab(),
-            self._build_separate_ledger_tab()
-        ]
-        self.content_switcher = ft.AnimatedSwitcher(
-            self.tab_contents[0],
-            transition=ft.AnimatedSwitcherTransition.FADE,
-            duration=300,
-            reverse_duration=200,
-            switch_in_curve=ft.AnimationCurve.EASE_OUT_QUART,
-        )
+from src.services.workflow_service import WorkflowService
 
-        def on_tab_click(index):
-            if self.selected_tab_index == index:
-                return
-            self.selected_tab_index = index
-            self.content_switcher.content = self.tab_contents[index]
-            self._refresh_tab_headers(on_tab_click)
-            self.update()
 
-        self.tab_headers_row = ft.Row(spacing=24)
-        self._refresh_tab_headers(on_tab_click)
+class WorkflowPage:
+    def __init__(self, service: WorkflowService):
+        self.service = service
+        self.selected_file = None
+        self.log_container = None
 
-        self.controls = [
-            # Header Area - Compact
-            ft.Container(
-                content=ft.Column([
-                    ft.Text("工具包 (Toolbox)", size=22, weight=ft.FontWeight.W_700, color=ft.Colors.ON_SURFACE),
-                    ft.Text("管理資料處理工作流。請選取來源檔案。", size=14, color=ft.Colors.ON_SURFACE_VARIANT),
-                ], spacing=4),
-                padding=ft.Padding(0, 0, 0, 16),
-            ),
-            
-            # Step 1: File Picker Surface - Compact
-            ft.Container(
-                content=ft.Row([
-                    ft.Button(
-                        "選擇檔案", 
-                        icon=ft.Icons.UPLOAD_FILE_ROUNDED,
-                        on_click=self.pick_file,
-                        style=ft.ButtonStyle(
-                            shape=ft.RoundedRectangleBorder(radius=12),
-                            padding=16,
+    # Removed render() that wraps main_layout
+
+    def render_content(self):  # Renamed to facilitate SPA injection
+        self._content()
+
+    def _content(self):
+        # Header Section
+        with ui.row().classes("w-full items-end justify-between mb-2"):
+            with ui.column().classes("gap-1"):
+                ui.label("工具包 (Toolbox)").classes(
+                    "text-2xl font-bold text-slate-800 tracking-tight dark:text-white"
+                )
+                ui.label("管理資料處理工作流").classes(
+                    "text-sm text-slate-500 font-medium dark:text-slate-400"
+                )
+
+        # Step 1: File Selection - Compact Design
+        with ui.card().classes(
+            "w-full p-4 shadow-sm border border-slate-200 rounded-xl bg-white dark:!bg-slate-800 dark:border-slate-700"
+        ):
+            with ui.row().classes("items-center justify-between w-full gap-4"):
+                # Left: Label
+                with ui.row().classes("items-center gap-3"):
+                    ui.icon("upload_file", size="24px").classes(
+                        "text-indigo-500 dark:text-indigo-400"
+                    )
+                    with ui.column().classes("gap-0"):
+                        ui.label("Step 1: 選擇來源檔案").classes(
+                            "text-sm font-bold text-slate-700 dark:text-slate-200"
                         )
-                    ),
-                    ft.Column([
-                        ft.Text("檔案路徑", size=12, weight=ft.FontWeight.W_600, color=ft.Colors.PRIMARY),
-                        self.file_path_text,
-                    ], spacing=2, expand=True)
-                ], alignment=ft.MainAxisAlignment.START, spacing=20),
-                padding=20,
-                border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT),
-                border_radius=16,
-                bgcolor=ft.Colors.SURFACE_CONTAINER,
-            ),
-            
-            ft.Container(height=16), 
-
-            # Step 2: Custom Tab headers
-            self.tab_headers_row,
-            ft.Divider(height=1, thickness=1, color=ft.Colors.OUTLINE_VARIANT),
-            
-            # Step 3: Tab Content with animation
-            ft.Container(content=self.content_switcher, expand=True, width=1000),
-            
-            # Step 4: Global Footer Actions - Compact
-            ft.Container(
-                content=ft.Column([
-                    ft.Row([
-                        ft.Text("執行日誌", size=14, weight=ft.FontWeight.W_600, color=ft.Colors.ON_SURFACE),
-                        ft.ProgressRing(width=16, height=16, stroke_width=2, visible=False)
-                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                    ft.Container(
-                        content=self.log_view,
-                        bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
-                        border_radius=12,
-                        padding=12,
-                        height=100,
-                    ),
-                    ft.Row([
-                        ft.Text("準備就緒", size=12, color=ft.Colors.ON_SURFACE_VARIANT),
-                        self.submit_btn
-                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
-                ], spacing=10),
-                padding=ft.Padding(0, 16, 0, 0),
-            )
-        ]
-    def _refresh_tab_headers(self, on_click):
-        labels = ["摘要抓律師代碼", "律師收入明細"]
-        headers = []
-        for i, label in enumerate(labels):
-            is_selected = self.selected_tab_index == i
-            headers.append(
-                ft.Container(
-                    content=ft.Column([
-                        ft.Text(
-                            label, 
-                            size=15, 
-                            weight=ft.FontWeight.W_600 if is_selected else ft.FontWeight.W_400,
-                            color=ft.Colors.PRIMARY if is_selected else ft.Colors.ON_SURFACE_VARIANT,
-                        ),
-                        ft.Container(
-                            height=3,
-                            width=30,
-                            bgcolor=ft.Colors.PRIMARY if is_selected else ft.Colors.TRANSPARENT,
-                            border_radius=1.5,
+                        self.file_label = ui.label("尚未選擇").classes(
+                            "text-xs text-slate-400 dark:text-slate-500"
                         )
-                    ], spacing=4, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-                    padding=ft.Padding(0, 8, 0, 0),
-                    on_click=lambda e, idx=i: on_click(idx),
+
+                # Right: Custom Upload Button & Hidden Input
+                with ui.row().classes("items-center gap-4 relative"):
+                    # File Status Area (Hidden initially or showing placeholder)
+                    self.upload_progress = (
+                        ui.linear_progress()
+                        .classes("w-32 hidden")
+                        .props("color=indigo track-color=indigo-1")
+                    )
+
+                    # Note: We use opacity-0 instead of hidden to ensure it's clickable via JS
+                    self.upload = (
+                        ui.upload(
+                            auto_upload=True,
+                            on_upload=self.handle_upload,
+                            max_files=1,
+                        )
+                        .props('accept=".xlsx,.xls" flat')
+                        .classes(
+                            "absolute top-0 left-0 w-0 h-0 opacity-0 overflow-hidden"
+                        )
+                        .on(
+                            "uploading",
+                            lambda e: self.update_progress(e.args["percent"]),
+                        )
+                        .on("start", lambda: self.on_upload_start())
+                        .on("finish", lambda: self.on_upload_finish())
+                    )
+
+                    # Trigger Button using Client-Side JS execution
+                    ui.button(
+                        "選擇 Excel 檔案",
+                        icon="upload_file",
+                    ).classes(
+                        "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm rounded-lg text-sm px-4 py-2"
+                    ).props("unelevated no-caps").on(
+                        "click",
+                        js_handler=f"getElement({self.upload.id}).pickFiles()",
+                    )
+
+        # Step 2: Tabbed Actions
+        with ui.card().classes(
+            "w-full p-0 shadow-sm border border-slate-200 rounded-xl bg-white mt-6 overflow-hidden dark:!bg-slate-800 dark:border-slate-700"
+        ):
+            with ui.tabs().classes(
+                "w-full text-slate-500 bg-slate-50 border-b border-slate-200 active-text-indigo-600 indicator-color-indigo dark:!bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:active-text-indigo-400"
+            ) as tabs:
+                auto_fill_tab = ui.tab("摘要抓律師代碼", icon="manage_search").classes(
+                    "h-14 font-medium"
                 )
+                separate_tab = ui.tab("律師收入明細", icon="pie_chart").classes(
+                    "h-14 font-medium"
+                )
+
+            with ui.tab_panels(tabs, value=auto_fill_tab).classes("w-full p-8"):
+                # Tab 1: Auto Fill
+                with ui.tab_panel(auto_fill_tab):
+                    with ui.row().classes("items-start gap-6"):
+                        with ui.column().classes("flex-grow max-w-2xl"):
+                            ui.label("功能說明").classes(
+                                "text-lg font-bold text-slate-800 mb-2 dark:text-white"
+                            )
+                            ui.markdown(
+                                "自動掃描 Excel `摘要` 欄位並填入 `備註`。"
+                            ).classes(
+                                "text-slate-600 leading-relaxed dark:text-slate-300"
+                            )
+
+                            with ui.element("div").classes(
+                                "bg-indigo-50 p-4 rounded-lg mt-4 border border-indigo-100/50 flex gap-3 dark:bg-indigo-900/20 dark:border-indigo-800"
+                            ):
+                                ui.icon("info", size="20px").classes(
+                                    "text-indigo-500 mt-0.5 dark:text-indigo-400"
+                                )
+                                with ui.column().classes("gap-1"):
+                                    ui.label("智慧匹配").classes(
+                                        "text-xs font-bold text-indigo-800 dark:text-indigo-300"
+                                    )
+                                    ui.label(
+                                        "程式會根據摘要關鍵字自動匹配律師代碼。如果不確定，會跳出對話框詢問您。"
+                                    ).classes(
+                                        "text-sm text-indigo-700/80 dark:text-indigo-300/80"
+                                    )
+
+                        with ui.column().classes(
+                            "items-end justify-center min-w-[200px]"
+                        ):
+                            self.btn_auto_fill = (
+                                ui.button("執行：自動填入", on_click=self.run_auto_fill)
+                                .props("icon=play_arrow unelevated")
+                                .classes(
+                                    "w-full h-12 text-sm font-bold rounded-lg shadow-sm bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
+                                )
+                            )
+                            self.btn_auto_fill.disable()
+
+                # Tab 2: Separate Ledger
+                with ui.tab_panel(separate_tab):
+                    with ui.row().classes("items-start gap-6"):
+                        with ui.column().classes("flex-grow max-w-2xl"):
+                            ui.label("功能說明").classes(
+                                "text-lg font-bold text-slate-800 mb-2 dark:text-white"
+                            )
+                            ui.markdown(
+                                "根據備註欄位的律師代碼拆分帳務，產生新的工作表。"
+                            ).classes(
+                                "text-slate-600 leading-relaxed dark:text-slate-300"
+                            )
+
+                            with ui.element("div").classes(
+                                "bg-emerald-50 p-4 rounded-lg mt-4 border border-emerald-100/50 flex gap-3 dark:bg-emerald-900/20 dark:border-emerald-800"
+                            ):
+                                ui.icon("warning", size="20px").classes(
+                                    "text-emerald-600 mt-0.5 dark:text-emerald-400"
+                                )
+                                with ui.column().classes("gap-1"):
+                                    ui.label("寫入注意").classes(
+                                        "text-xs font-bold text-emerald-800 dark:text-emerald-300"
+                                    )
+                                    ui.label(
+                                        "請確保檔案未被其他程式開啟。結果將直接寫入原檔的新工作表。"
+                                    ).classes(
+                                        "text-sm text-emerald-700/80 dark:text-emerald-300/80"
+                                    )
+
+                        with ui.column().classes(
+                            "items-end justify-center min-w-[200px]"
+                        ):
+                            self.btn_separate = (
+                                ui.button("執行：拆分明細", on_click=self.run_separate)
+                                .props("icon=play_arrow unelevated")
+                                .classes(
+                                    "w-full h-12 text-sm font-bold rounded-lg shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white transition-colors"
+                                )
+                            )
+                            self.btn_separate.disable()
+
+        # Logs
+        with (
+            ui.expansion("執行日誌 (System Logs)", icon="terminal")
+            .classes(
+                "w-full mt-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm dark:!bg-slate-800 dark:border-slate-700"
             )
-        self.tab_headers_row.controls = headers
+            .props(
+                'header-class="bg-slate-50 text-slate-700 font-semibold dark:!bg-slate-800 dark:text-slate-200"'
+            )
+        ):
+            self.log_container = ui.log().classes(
+                "w-full h-48 font-mono text-xs bg-slate-900 text-emerald-400 p-4"
+            )
 
-    def _build_auto_fill_tab(self):
-        return ft.Container(
-            padding=ft.Padding(0, 16, 0, 0),
-            expand=True,
-            width=1000, # Force width to prevent shrinking during animation
-            content=ft.Column([
-                ft.Text("摘要抓律師代碼說明", size=18, weight=ft.FontWeight.W_600, color=ft.Colors.ON_SURFACE),
-                ft.Text(
-                    "自動掃描 Excel 「摘要」欄位並填入「備註」。",
-                    size=14, color=ft.Colors.ON_SURFACE_VARIANT
-                ),
-                ft.Container(
-                    padding=16,
-                    bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,
-                    border_radius=16,
-                    width=950, # Sub-container also forced
-                    content=ft.Column([
-                        ft.Text("操作步驟：", weight=ft.FontWeight.BOLD, size=14),
-                        ft.Text("1. 選擇來源 Excel\n2. 點擊「執行功能」\n3. 若有不確定項目將提示手動選擇", size=13, color=ft.Colors.ON_SURFACE_VARIANT),
-                    ], spacing=8, horizontal_alignment=ft.CrossAxisAlignment.START)
-                )
-            ], spacing=16, expand=True, horizontal_alignment=ft.CrossAxisAlignment.START)
+    def on_upload_start(self):
+        self.upload_progress.classes(remove="hidden")
+        self.file_label.text = "正在上傳..."
+        self.file_label.classes(
+            remove="text-slate-400 italic", add="text-indigo-600 font-bold"
         )
 
-    def _build_separate_ledger_tab(self):
-        return ft.Container(
-            padding=ft.Padding(0, 16, 0, 0),
-            expand=True,
-            width=1000, # Match exactly with auto_fill_tab
-            content=ft.Column([
-                ft.Text("律師收入明細說明", size=18, weight=ft.FontWeight.W_600, color=ft.Colors.ON_SURFACE),
-                ft.Text(
-                    "根據備註欄位的律師代碼拆分帳務。",
-                    size=14, color=ft.Colors.ON_SURFACE_VARIANT
-                ),
-                ft.Container(
-                    padding=16,
-                    bgcolor=ft.Colors.PRIMARY_CONTAINER,
-                    border_radius=16,
-                    width=950, # Match exactly
-                    content=ft.Column([
-                        ft.Text("注意事項：", weight=ft.FontWeight.BOLD, size=14, color=ft.Colors.ON_PRIMARY_CONTAINER),
-                        ft.Text("• 會在原檔新增工作表\n• 請確保檔案未被開啟", size=13, color=ft.Colors.ON_PRIMARY_CONTAINER),
-                    ], spacing=8, horizontal_alignment=ft.CrossAxisAlignment.START)
-                )
-            ], spacing=16, expand=True, horizontal_alignment=ft.CrossAxisAlignment.START)
-        )
+    def on_upload_finish(self):
+        self.upload_progress.classes(add="hidden")
 
+    def update_progress(self, percent):
+        self.upload_progress.value = percent
 
+    async def handle_upload(self, e):
+        # Save to temp file
+        try:
+            temp_dir = "temp_uploads"
+            os.makedirs(temp_dir, exist_ok=True)
+            # NiceGUI uses e.file.name and e.file.read() for uploaded file access
+            file_name = e.file.name
+            file_path = os.path.join(temp_dir, file_name)
 
-    async def pick_file(self, e):
-        files = await self.file_picker.pick_files(allowed_extensions=["xlsx", "xls"])
-        if files:
-            self.state.set_file(files[0].path)
+            with open(file_path, "wb") as f:
+                # e.file.read() is async in NiceGUI - need to await
+                content = await e.file.read()
+                f.write(content)
 
-    def handle_submit(self, e):
-        if self.selected_tab_index == 0:
-            self.state.run_auto_fill()
-        else:
-            self.state.run_separate_ledger()
+            self.selected_file = file_path
+            self.file_label.text = f"{file_name}"
+            self.file_label.classes(
+                remove="text-slate-400 italic dark:text-slate-500",
+                add="text-indigo-600 font-bold dark:text-indigo-400",
+            )
 
-    def update_ui(self):
-        self.file_path_text.value = self.state.selected_file if self.state.selected_file else "尚未選擇來源檔案"
-        self.file_path_text.color = ft.Colors.BLUE_700 if self.state.selected_file else ft.Colors.GREY_600
-        self.file_path_text.weight = ft.FontWeight.BOLD if self.state.selected_file else None
-        
-        is_ready = bool(self.state.selected_file) and not self.state.is_processing
-        self.submit_btn.disabled = not is_ready
-        
-        # Update progress ring if needed
-        footer_column = self.controls[-1].content
-        progress_ring = footer_column.controls[0].controls[1]
-        progress_ring.visible = self.state.is_processing
-        
-        status_text = footer_column.controls[2].controls[0]
-        if self.state.is_processing:
-            status_text.value = "處理中..."
-            status_text.color = ft.Colors.ORANGE_700
-        else:
-            status_text.value = "準備就緒" if self.state.selected_file else "請選擇檔案"
-            status_text.color = ft.Colors.GREEN_700 if self.state.selected_file else ft.Colors.GREY_500
-        
-        self.log_view.controls = [
-            ft.Text(
-                f"[{i:02d}] {log}", 
-                font_family="Consolas", 
-                color=ft.Colors.GREEN_ACCENT_400 if "完成" in log else (ft.Colors.RED_ACCENT_200 if "錯誤" in log else ft.Colors.BLUE_GREY_100),
-                size=12
-            ) for i, log in enumerate(self.state.logs)
-        ]
-        
-        self.update()
+            # Enable buttons
+            self.btn_auto_fill.enable()
+            self.btn_separate.enable()
 
+            self.log_container.push(f"[INFO] 檔案已載入: {file_path}")
+            ui.notify(
+                f"檔案上傳成功: {file_name}",
+                type="positive",
+                icon="check_circle",
+                color="emerald",
+            )
 
+        except Exception as ex:
+            ui.notify(f"上傳失敗: {ex}", type="negative")
+            self.log_container.push(f"[ERROR] 上傳錯誤: {ex}")
+
+    async def run_auto_fill(self):
+        if not self.selected_file:
+            return
+        try:
+            self.log_container.push("[INFO] 開始執行：摘要抓律師代碼...")
+            result = await self.service.run_auto_fill(self.selected_file)
+
+            self.log_container.push(
+                f"[SUCCESS] 執行完成。更新筆數: {result.updated_count}"
+            )
+            ui.notify(
+                f"完成! 更新 {result.updated_count} 筆",
+                type="positive",
+                icon="check_circle",
+            )
+            ui.download(
+                self.selected_file,
+                filename=f"processed_{os.path.basename(self.selected_file)}",
+            )
+
+        except Exception as e:
+            self.log_container.push(f"[ERROR] 錯誤: {e}")
+            ui.notify(f"執行失敗: {e}", type="negative")
+
+    async def run_separate(self):
+        if not self.selected_file:
+            return
+        try:
+            self.log_container.push("[INFO] 開始執行：律師收入明細...")
+            await self.service.run_separate_ledger(
+                self.selected_file, self.selected_file
+            )
+
+            self.log_container.push("[SUCCESS] 執行完成。已新增工作表。")
+            ui.notify("執行完成", type="positive", icon="check_circle")
+            ui.download(
+                self.selected_file,
+                filename=f"report_{os.path.basename(self.selected_file)}",
+            )
+
+        except Exception as e:
+            self.log_container.push(f"[ERROR] 錯誤: {e}")
+            ui.notify(f"執行失敗: {e}", type="negative")

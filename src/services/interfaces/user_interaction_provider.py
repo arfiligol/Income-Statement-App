@@ -4,7 +4,7 @@ from typing import Protocol,runtime_checkable
 class UserInteractionProvider(Protocol):
     """Interface for services to request user interaction."""
 
-    def confirm(self, title: str, message: str) -> bool:
+    async def confirm(self, title: str, message: str) -> bool:
         """Prompt user for confirmation."""
         ...
 
@@ -12,7 +12,7 @@ class UserInteractionProvider(Protocol):
         """Show a message to the user."""
         ...
 
-    def select_lawyers(self, summary_text: str, row_number: int, available_codes: list[str]) -> tuple[list[str], str]:
+    async def select_lawyers(self, summary_text: str, row_number: int, available_codes: list[str]) -> tuple[list[str], str]:
         """
         Prompt user to select lawyers.
         Returns: (selected_codes, action)

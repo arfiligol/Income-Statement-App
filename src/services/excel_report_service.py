@@ -19,7 +19,7 @@ class ExcelReportService:
     def __init__(self, interaction_provider: UserInteractionProvider):
         self.interaction = interaction_provider
 
-    def write_separate_ledger_report(self, file_path: str, result: SeparateLedgerResultDTO) -> None:
+    async def write_separate_ledger_report(self, file_path: str, result: SeparateLedgerResultDTO) -> None:
         """Writes the separate ledger result to Excel."""
         is_new_workbook = False
         if not os.path.exists(file_path):
@@ -39,7 +39,7 @@ class ExcelReportService:
             wb.remove(wb["Sheet"])
 
         if self.SHEET_TITLE in wb.sheetnames:
-            if self.interaction.confirm("工作表存在", f"工作表'{self.SHEET_TITLE}' 已經存在，你想要覆蓋它嗎？"):
+            if await self.interaction.confirm("工作表存在", f"工作表'{self.SHEET_TITLE}' 已經存在，你想要覆蓋它嗎？"):
                 wb.remove(wb[self.SHEET_TITLE])
                 ws = wb.create_sheet(self.SHEET_TITLE)
                 self._format_worksheet(ws)
@@ -59,7 +59,7 @@ class ExcelReportService:
         # Let's align with that. format_worksheet writes headers at row 1 (merged to 2).
         
         if first_empty_row != 3:
-             if self.interaction.confirm("問題", f"偵測到工作表'{self.SHEET_TITLE}'已有資料，是否覆寫？"):
+             if await self.interaction.confirm("問題", f"偵測到工作表'{self.SHEET_TITLE}'已有資料，是否覆寫？"):
                  # Reset to row 3? How to clear content?
                  # openpyxl delete_rows
                  ws.delete_rows(3, amount=ws.max_row) 
