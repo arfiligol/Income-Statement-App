@@ -27,19 +27,15 @@ class DatabasePage:
         # Header
         with ui.row().classes("w-full items-end justify-between mb-6"):
             with ui.column().classes("gap-1"):
-                ui.label("資料庫管理 (Database)").classes(
-                    "text-3xl font-bold dark:text-white"
-                )
-                ui.label("管理律師與別名設定").classes(
-                    "text-slate-500 dark:text-slate-400"
-                )
+                ui.label("資料庫管理 (Database)").classes("text-3xl font-bold")
+                ui.label("管理律師與別名設定").classes("text-muted")
 
         # Tabs
         with ui.card().classes(
-            "w-full p-0 shadow-sm border border-slate-200 rounded-xl bg-white overflow-hidden dark:bg-slate-800 dark:border-slate-700"
+            "w-full p-0 shadow-sm border border-border rounded-xl bg-surface overflow-hidden"
         ):
             with ui.tabs().classes(
-                "w-full text-slate-500 bg-slate-50 border-b border-slate-200 active-text-indigo-600 indicator-color-indigo dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:active-text-indigo-400"
+                "w-full text-muted bg-bg border-b border-border active-text-primary indicator-color-primary"
             ) as tabs:
                 lawyer_tab = ui.tab("律師名單", icon="groups").classes(
                     "h-14 font-medium"
@@ -47,14 +43,12 @@ class DatabasePage:
                 alias_tab = ui.tab("別名設定", icon="badge").classes("h-14 font-medium")
 
             with ui.tab_panels(tabs, value=lawyer_tab).classes(
-                "w-full p-6 dark:bg-slate-900"
+                "w-full p-6 bg-bg"
             ):
                 # Lawyer Panel
                 with ui.tab_panel(lawyer_tab):
                     with ui.row().classes("w-full items-center justify-between mb-4"):
-                        ui.label("所有律師代碼").classes(
-                            "text-lg font-bold text-slate-700 dark:text-slate-200"
-                        )
+                        ui.label("所有律師代碼").classes("text-lg font-bold")
                         with ui.row().classes("items-center gap-2"):
                             self.input_code = (
                                 ui.input(placeholder="新代碼")
@@ -62,7 +56,7 @@ class DatabasePage:
                                 .classes("w-40")
                             )
                             ui.button("新增", on_click=self._on_add_click).classes(
-                                "bg-indigo-600 text-white rounded-lg shadow-sm"
+                                "app-btn-primary rounded-lg shadow-sm"
                             ).props("unelevated no-caps")
 
                     cols = [
@@ -87,9 +81,7 @@ class DatabasePage:
 
                 # Alias Panel
                 with ui.tab_panel(alias_tab):
-                    ui.label("別名設定").classes(
-                        "text-lg font-bold text-slate-700 mb-4 dark:text-slate-200"
-                    )
+                    ui.label("別名設定").classes("text-lg font-bold mb-4")
                     cols_alias = [
                         {
                             "name": "source",

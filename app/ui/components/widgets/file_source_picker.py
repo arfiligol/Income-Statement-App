@@ -59,7 +59,7 @@ class FileSourcePicker(ui.element):
         )
 
         ui.button("選擇 Excel 檔案", icon="upload_file").classes(
-            "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm rounded-lg text-sm px-4 py-2"
+            "app-btn-primary shadow-sm rounded-lg text-sm px-4 py-2"
         ).props("unelevated no-caps").on(
             "click", lambda: self.upload.run_method("pickFiles")
         )

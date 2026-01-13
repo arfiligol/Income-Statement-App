@@ -1,8 +1,11 @@
+from pathlib import Path
 from typing import Callable
 
 from nicegui import ui
 
 from app.ui.state.app_store import AppStore
+
+_styles_loaded = False
 
 
 def app_shell(content_builder: Callable):
@@ -11,6 +14,13 @@ def app_shell(content_builder: Callable):
     Provides Header, Sidebar, and Content Area.
     """
     store = AppStore()
+
+    global _styles_loaded
+    if not _styles_loaded:
+        styles_dir = Path(__file__).resolve().parents[2] / "styles"
+        ui.add_css(str(styles_dir / "theme.css"), shared=True)
+        ui.add_css(str(styles_dir / "components.css"), shared=True)
+        _styles_loaded = True
 
     def apply_dark_mode(is_dark: bool) -> None:
         dark.set_value(is_dark)
@@ -24,11 +34,11 @@ def app_shell(content_builder: Callable):
 
     # 2. Header
     with ui.header().classes(
-        "bg-white dark:bg-slate-900 text-slate-900 dark:text-white h-16 px-6 items-center shadow-sm border-b border-slate-200 dark:border-slate-800"
+        "bg-surface text-fg h-16 px-6 items-center shadow-sm border-b border-border"
     ):
         ui.button(icon="menu", on_click=lambda: left_drawer.toggle()).props(
             "flat round dense"
-        ).classes("text-slate-600 dark:text-slate-300")
+        ).classes("text-muted")
         ui.label("Income Statement App").classes("text-lg font-bold ml-4")
 
         ui.space()
@@ -41,20 +51,20 @@ def app_shell(content_builder: Callable):
 
         ui.button(icon="dark_mode", on_click=toggle_dark_mode).props(
             "flat round dense"
-        ).classes("text-slate-600 dark:text-slate-300")
+        ).classes("text-muted")
 
     # 3. Sidebar (Drawer)
     with ui.left_drawer(value=True).classes(
-        "bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800"
+        "bg-bg border-r border-border"
     ) as left_drawer:
         with ui.column().classes("w-full gap-2 p-4"):
-            ui.label("主選單").classes("text-xs font-bold text-slate-400 mb-2")
+            ui.label("主選單").classes("text-xs font-bold text-muted mb-2")
 
             def nav_btn(label, icon, target):
                 ui.button(
                     label, icon=icon, on_click=lambda: ui.navigate.to(target)
                 ).props("flat align=left no-caps").classes(
-                    "w-full justify-start text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                    "w-full justify-start app-nav-item rounded-lg"
                 )
 
             nav_btn("資料處理 (Toolbox)", "handyman", "/")
@@ -62,6 +72,6 @@ def app_shell(content_builder: Callable):
 
     # 4. Main Content
     with ui.column().classes(
-        "w-full p-8 bg-white dark:bg-slate-900 min-h-screen text-slate-900 dark:text-slate-100"
+        "w-full p-8 bg-bg min-h-screen text-fg"
     ):
         content_builder()

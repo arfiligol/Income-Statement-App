@@ -1,0 +1,33 @@
+.app-card {
+  background-color: rgb(var(--surface));
+  border: 1px solid rgb(var(--border));
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.08);
+}
+
+.app-section-title {
+  color: rgb(var(--fg));
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.app-muted {
+  color: rgb(var(--muted));
+}
+
+.app-btn-primary {
+  background-color: rgb(var(--primary));
+  color: rgb(var(--primary-fg));
+}
+
+.app-btn-primary:hover {
+  filter: brightness(0.95);
+}
+
+.app-nav-item {
+  color: rgb(var(--muted));
+}
+
+.app-nav-item:hover {
+  background-color: rgb(var(--elevated));
+}

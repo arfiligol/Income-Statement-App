@@ -19,7 +19,7 @@ class NiceGUIInteractionGateway(UserInteractionGateway):
             ui.label(f"Row {prompt.row_number}: Lawyer Selection").classes(
                 "text-lg font-bold"
             )
-            ui.label(f"Summary: {prompt.summary}").classes("text-slate-600 mb-2")
+            ui.label(f"Summary: {prompt.summary}").classes("text-muted mb-2")
 
             # Selection Interface
             selected = []
@@ -38,9 +38,7 @@ class NiceGUIInteractionGateway(UserInteractionGateway):
             ).classes("w-64")
 
             with ui.row().classes("w-full justify-end mt-4"):
-                ui.button("Skip", on_click=lambda: dialog.submit("skip")).props(
-                    "flat color=grey"
-                )
+                ui.button("Skip", on_click=lambda: dialog.submit("skip")).props("flat")
                 ui.button("Submit", on_click=lambda: dialog.submit("submit"))
 
         dialog.open()
