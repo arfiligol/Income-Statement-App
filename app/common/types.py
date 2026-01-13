@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Generic, TypeVar
+from typing import Generic, Optional, TypeVar, Union
 
 T = TypeVar("T")
 E = TypeVar("E")
 
 # Type alias for paths
-PathLike = str | Path
+PathLike = Union[str, Path]
 
 
 @dataclass
@@ -16,8 +16,8 @@ class Result(Generic[T, E]):
     This encourages explicit error handling in the application layer.
     """
 
-    value: T | None = None
-    error: E | None = None
+    value: Optional[T] = None
+    error: Optional[E] = None
     is_success: bool = True
 
     @classmethod

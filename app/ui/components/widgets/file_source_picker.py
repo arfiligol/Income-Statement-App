@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional
 
 from nicegui import events, ui
 
@@ -13,11 +13,21 @@ class FileSourcePicker(ui.element):
     """
 
     def __init__(
-        self, on_file_selected: Callable[[FileSource], None], is_native: bool = False
+        self,
+        on_file_selected: Callable[[FileSource], None],
+        is_native: Optional[bool] = None,
     ):
         super().__init__("div")
+        from nicegui import app
+
         self.on_file_selected = on_file_selected
-        self.is_native = is_native
+        # Auto-detect if not provided
+        if is_native is None:
+            # FIXME: Reliable native mode detection is currently unavailable via app.native.
+            # Defaulting to False (web mode) which matches main.py configuration.
+            self.is_native = False
+        else:
+            self.is_native = is_native
 
         with self:
             self.render()
@@ -50,7 +60,7 @@ class FileSourcePicker(ui.element):
         ui.button("選擇 Excel 檔案", icon="upload_file").classes(
             "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm rounded-lg text-sm px-4 py-2"
         ).props("unelevated no-caps").on(
-            "click", js_handler=f"getElement({self.upload.id}).pickFiles()"
+            "click", lambda: self.upload.run_method("pickFiles")
         )
 
     def _handle_web_upload(self, e: events.UploadEventArguments):
@@ -82,11 +92,27 @@ class FileSourcePicker(ui.element):
         source = FileSource(path=temp_path, filename=e.name)
         self.on_file_selected(source)
 
-    def _handle_native_pick(self):
-        # Logic to trigger native dialog usually goes through a VM intent -> Gateway
-        # But here we are the UI component.
-        # If we want to support "VM handles pick", we should emit an event "pick_requested".
-        # But for this component, let's assume we just emit 'file_selected' if we can?
-        # Only if we can self-manage. If not, we need an 'on_pick_requested' callback.
-        # Let's keep it simple: Web Native Parity.
-        pass
+    async def _handle_native_pick(self):
+        try:
+            from nicegui import app
+
+            # Verify if native mode is active and main_window is available
+            if not app.native.main_window:
+                ui.notify("Native window not available", type="warning")
+                return
+
+            file_paths = await app.native.main_window.create_file_dialog(
+                dialog_type=app.native.main_window.OPEN_DIALOG,
+                allow_multiple=False,
+                file_types=("Excel Files (*.xlsx;*.xls)", "All Files (*.*)"),
+            )
+
+            if file_paths and len(file_paths) > 0:
+                # Native dialog returns a tuple or list of strings
+                path = file_paths[0]
+                # In native mode, we access the file directly
+                source = FileSource(path=path, filename=path.split("/")[-1])
+                self.on_file_selected(source)
+
+        except Exception as e:
+            ui.notify(f"Native Pick Failed: {e}", type="error")

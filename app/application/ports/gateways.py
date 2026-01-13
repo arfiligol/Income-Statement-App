@@ -1,4 +1,4 @@
-from typing import Protocol
+from typing import Optional, Protocol
 
 from app.common.types import Result
 from app.domain.dto.auto_fill import AutoFillPrompt, AutoFillResponse
@@ -11,7 +11,7 @@ class FilePickerGateway(Protocol):
     Interface for file selection.
     """
 
-    async def pick_file(self) -> FileSource | None:
+    async def pick_file(self) -> Optional[FileSource]:
         """Triggers the file picking process and returns a FileSource if successful."""
         ...
 

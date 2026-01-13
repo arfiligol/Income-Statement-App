@@ -16,7 +16,7 @@ if __name__ in {"__main__", "__mp_main__"}:
     # Common screen size for desktop apps
     ui.run(
         title="Income Statement App (Clean Arch)",
-        native=True,
+        native=False,
         window_size=(1200, 800),
-        reload=False,  # Reload often causes issues with large refactors, better manual restart
+        reload=True,  # Reload often causes issues with large refactors, better manual restart
     )

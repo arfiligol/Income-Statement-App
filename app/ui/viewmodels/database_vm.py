@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import List, Optional
 
 from app.application.ports.repositories import AliasRepository, LawyerRepository
 from app.domain.dto.alias import Alias
@@ -11,7 +12,7 @@ class DatabaseState:
     lawyers: list[Lawyer] = field(default_factory=list)
     aliases: list[Alias] = field(default_factory=list)
     is_loading: bool = False
-    error_message: str | None = None
+    error_message: Optional[str] = None
 
 
 class DatabaseViewModel(BaseViewModel[DatabaseState]):

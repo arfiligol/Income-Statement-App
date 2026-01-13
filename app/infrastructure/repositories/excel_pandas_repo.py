@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List, Optional, Tuple
 
 import openpyxl
 import pandas as pd
@@ -91,7 +91,7 @@ class ExcelPandasRepository(ExcelRepository):
         except Exception as e:
             return Result.failure(InfrastructureError(f"Failed to update cells: {e}"))
 
-    def _resolve_source(self, source: FileSource) -> str | None:
+    def _resolve_source(self, source: FileSource) -> Optional[str]:
         if source.is_local:
             return str(source.path)
         if source.path:

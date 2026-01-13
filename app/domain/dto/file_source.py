@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from app.common.types import PathLike
 
@@ -11,11 +12,11 @@ class FileSource:
     """
 
     # For Native: The absolute path to the file
-    path: PathLike | None = None
+    path: Optional[PathLike] = None
 
     # For Web: The unique ID or token referencing the uploaded temp file
     # (Infrastructure layer knows how to resolve this ID to a real file or bytes)
-    upload_id: str | None = None
+    upload_id: Optional[str] = None
 
     # Optional: Original filename for display purposes
     filename: str = "unknown.xlsx"
