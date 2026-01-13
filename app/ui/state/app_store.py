@@ -24,4 +24,6 @@ class AppStore:
 
     def toggle_dark_mode(self):
         self.state.is_dark_mode = not self.state.is_dark_mode
-        # In a real app, you might emit an event here or bind to ui.dark_mode()
+
+    def set_dark_mode(self, value: bool) -> None:
+        self.state.is_dark_mode = value

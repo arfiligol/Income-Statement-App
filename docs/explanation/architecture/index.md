@@ -4,6 +4,10 @@
 
 The **Income Statement App** adopts a **Layered Clean Architecture** combined with **NiceGUI** for the presentation layer. This design ensures separation of concerns, testability, and ease of maintenance.
 
+## Key References
+
+- [NiceGUI MVVM + Clean Architecture](nicegui-mvvm.md)
+
 ## Layers
 
 The application is divided into the following layers:

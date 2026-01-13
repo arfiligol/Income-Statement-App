@@ -12,9 +12,15 @@ def app_shell(content_builder: Callable):
     """
     store = AppStore()
 
-    # 1. Global Theme/Style setup (if needed)
-    # Note: ui.run() usually handles main theme, but we can enforce dark mode here
-    # ui.dark_mode().bind_value(store.state, 'is_dark_mode') # Simple binding if using NiceGUI > 1.4
+    def apply_dark_mode(is_dark: bool) -> None:
+        dark.set_value(is_dark)
+        ui.run_javascript(
+            f"document.body.classList.toggle('dark', {str(is_dark).lower()});"
+        )
+
+    # 1. Global Theme/Style setup (single source of truth)
+    dark = ui.dark_mode()
+    apply_dark_mode(store.state.is_dark_mode)
 
     # 2. Header
     with ui.header().classes(
@@ -29,16 +35,9 @@ def app_shell(content_builder: Callable):
 
         # Dark Mode Toggle
         # Note: ui.dark_mode toggles Quasar's body--dark. We also need Tailwind's 'dark' class.
-        dark = ui.dark_mode()
-
         def toggle_dark_mode():
-            dark.toggle()
-            # Toggle 'dark' class on body for Tailwind
-            ui.run_javascript(
-                "if (document.body.classList.contains('dark')) "
-                "{ document.body.classList.remove('dark'); } "
-                "else { document.body.classList.add('dark'); }"
-            )
+            store.toggle_dark_mode()
+            apply_dark_mode(store.state.is_dark_mode)
 
         ui.button(icon="dark_mode", on_click=toggle_dark_mode).props(
             "flat round dense"

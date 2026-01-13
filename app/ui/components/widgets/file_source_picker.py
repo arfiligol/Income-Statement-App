@@ -95,8 +95,8 @@ class FileSourcePicker(ui.element):
 
     async def _handle_native_pick(self):
         try:
-            import webview
             from nicegui import app
+            import webview
 
             # Verify if native mode is active and main_window is available
             if not app.native.main_window:
@@ -104,7 +104,7 @@ class FileSourcePicker(ui.element):
                 return
 
             file_paths = await app.native.main_window.create_file_dialog(
-                dialog_type=webview.OPEN_DIALOG,
+                dialog_type=webview.FileDialog.OPEN,
                 allow_multiple=False,
                 file_types=("Excel Files (*.xlsx;*.xls)", "All Files (*.*)"),
             )
