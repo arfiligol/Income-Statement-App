@@ -17,6 +17,16 @@ class ExcelRepository(Protocol):
         """Reads an Excel file and converts it into a Statement DTO."""
         ...
 
+    def read_raw_rows(self, source: FileSource) -> Result[List[List[Any]], Exception]:
+        """Reads raw rows for low-level processing (e.g. AutoFill)."""
+        ...
+
+    def update_cells(
+        self, source: FileSource, updates: List[Tuple[int, int, Any]]
+    ) -> Result[int, Exception]:
+        """Updates specific cells in the Excel file. updates = [(row, col, value), ...]"""
+        ...
+
 
 class SettingsRepository(Protocol):
     """Interface for app settings persistence."""
