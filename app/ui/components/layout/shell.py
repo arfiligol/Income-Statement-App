@@ -31,6 +31,7 @@ def app_shell(content_builder: Callable):
     # 1. Global Theme/Style setup (single source of truth)
     dark = ui.dark_mode()
     apply_dark_mode(store.state.is_dark_mode)
+    ui.query("body").classes("bg-bg text-fg")
 
     # 2. Header
     with ui.header().classes(
@@ -71,7 +72,5 @@ def app_shell(content_builder: Callable):
             nav_btn("資料庫 (Database)", "storage", "/database")
 
     # 4. Main Content
-    with ui.column().classes(
-        "w-full p-8 bg-bg min-h-screen text-fg"
-    ):
+    with ui.column().classes("w-full p-0 bg-bg min-h-screen text-fg"):
         content_builder()

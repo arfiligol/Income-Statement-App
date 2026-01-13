@@ -8,6 +8,7 @@ from app.infrastructure.gateways.nicegui_interaction import NiceGUIInteractionGa
 from app.infrastructure.repositories.excel_pandas_repo import ExcelPandasRepository
 from app.infrastructure.repositories.sqla_alias_repo import SQLAAliasRepository
 from app.infrastructure.repositories.sqla_lawyer_repo import SQLALawyerRepository
+from app.ui.components.layout.shell import app_shell
 from app.ui.pages.database_page import DatabasePage
 from app.ui.pages.statement_editor_page import StatementEditorPage
 from app.ui.viewmodels.database_vm import DatabaseViewModel
@@ -22,37 +23,44 @@ def register_routes():
 
     @ui.page("/")
     def home_page():
-        # 1. Infrastructure
-        excel_repo = ExcelPandasRepository()
-        lawyer_repo = SQLALawyerRepository()
-        alias_repo = SQLAAliasRepository()
-        interaction_gw = NiceGUIInteractionGateway()
-        report_gw = ExcelReportGateway()
+        def render_toolbox():
+            # 1. Infrastructure
+            excel_repo = ExcelPandasRepository()
+            lawyer_repo = SQLALawyerRepository()
+            alias_repo = SQLAAliasRepository()
+            interaction_gw = NiceGUIInteractionGateway()
+            report_gw = ExcelReportGateway()
 
-        # 2. Application
-        import_use_case = ImportExcelUseCase(excel_repo)
-        auto_fill_use_case = AutoFillUseCase(
-            excel_repo, lawyer_repo, alias_repo, interaction_gw
-        )
-        sep_ledger_use_case = SeparateLedgerUseCase(excel_repo, lawyer_repo, report_gw)
+            # 2. Application
+            import_use_case = ImportExcelUseCase(excel_repo)
+            auto_fill_use_case = AutoFillUseCase(
+                excel_repo, lawyer_repo, alias_repo, interaction_gw
+            )
+            sep_ledger_use_case = SeparateLedgerUseCase(
+                excel_repo, lawyer_repo, report_gw
+            )
 
-        # 3. UI (ViewModel + Page)
-        vm = StatementViewModel(
-            import_use_case, auto_fill_use_case, sep_ledger_use_case
-        )
-        page = StatementEditorPage(vm)
+            # 3. UI (ViewModel + Page)
+            vm = StatementViewModel(
+                import_use_case, auto_fill_use_case, sep_ledger_use_case
+            )
+            page = StatementEditorPage(vm)
 
-        # 4. Render
-        page.render()
+            # 4. Render content only (shell handled by root)
+            page.render_content()
 
-    @ui.page("/database")
-    def database_page():
-        # 1. Infrastructure
-        lawyer_repo = SQLALawyerRepository()
-        alias_repo = SQLAAliasRepository()
+        def render_database():
+            # 1. Infrastructure
+            lawyer_repo = SQLALawyerRepository()
+            alias_repo = SQLAAliasRepository()
 
-        # 2. UI
-        vm = DatabaseViewModel(lawyer_repo, alias_repo)
-        page = DatabasePage(vm)
+            # 2. UI
+            vm = DatabaseViewModel(lawyer_repo, alias_repo)
+            page = DatabasePage(vm)
 
-        page.render()
+            page.render_content()
+
+        def render_content():
+            ui.sub_pages({"/": render_toolbox, "/database": render_database})
+
+        app_shell(render_content)

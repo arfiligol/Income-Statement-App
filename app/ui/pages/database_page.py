@@ -20,6 +20,10 @@ class DatabasePage:
         # Load initial data
         self.vm.load_data()
 
+    def render_content(self):
+        self._render_content()
+        self.vm.load_data()
+
     def _render_content(self):
         self.vm.on_effect(self._handle_effect)
         self.vm.add_listener(self._on_state_change)

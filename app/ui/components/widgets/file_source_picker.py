@@ -1,3 +1,4 @@
+import asyncio
 from typing import Callable, Optional
 
 from nicegui import events, ui
@@ -33,6 +34,11 @@ class FileSourcePicker(ui.element):
         with self:
             self.render()
 
+    def _emit_file_selected(self, source: FileSource) -> None:
+        result = self.on_file_selected(source)
+        if asyncio.iscoroutine(result):
+            asyncio.create_task(result)
+
     def render(self):
         with ui.row().classes("items-center gap-4 relative"):
             if self.is_native:
@@ -65,33 +71,19 @@ class FileSourcePicker(ui.element):
         )
 
     def _handle_web_upload(self, e: events.UploadEventArguments):
-        # In NiceGUI, e.content is a temporary file-like object or we can get path
-        # Typically e.name is filename, e.content is SpooledTemporaryFile
-        # For simplicity in this DTO, we assume we can treat it as a bytes source or temp path
-        # But wait, to be robust, we should probably save it to a temp dir managed by infra?
-        # For now, let's assume the Gateway/Repo knows how to handle the 'upload_id' or we pass the object differently.
-        # Ideally, we convert to FileSource right here.
-
-        # NOTE: In a real implementation we might need to persist `e.content` to a known temp path
-        # so Pandas can read it easily via path.
-
-        source = FileSource(
-            upload_id=str(e.sender.id), filename=e.name
-        )  # Placeholder ID
-        # HACK: Attach the content directly for now so Repo can read it?
-        # Clean Architecture says DTO shouldn't hold binary streams ideally,
-        # but for simplicity let's assume infrastructure resolves 'upload_id'.
-        # Actually better: NiceGUI's handle_upload runs on server. We can save to /tmp.
-
         import shutil
         import tempfile
 
+        upload = e.file
+        filename = upload.filename or "upload.xlsx"
+        upload.file.seek(0)
+
         with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
-            shutil.copyfileobj(e.content, tmp)
+            shutil.copyfileobj(upload.file, tmp)
             temp_path = tmp.name
 
-        source = FileSource(path=temp_path, filename=e.name)
-        self.on_file_selected(source)
+        source = FileSource(path=temp_path, filename=filename)
+        self._emit_file_selected(source)
 
     async def _handle_native_pick(self):
         try:
@@ -114,7 +106,7 @@ class FileSourcePicker(ui.element):
                 path = file_paths[0]
                 # In native mode, we access the file directly
                 source = FileSource(path=path, filename=path.split("/")[-1])
-                self.on_file_selected(source)
+                self._emit_file_selected(source)
 
         except Exception as e:
             ui.notify(f"Native Pick Failed: {e}", type="error")
