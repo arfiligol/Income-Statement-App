@@ -24,6 +24,9 @@ class StatementEditorPage:
         # We hook up the shell
         app_shell(self._render_content)
 
+    def render_content(self):
+        self._render_content()
+
     def _render_content(self):
         # Setup Effect Listeners
         self.vm.on_effect(self._handle_effect)
@@ -129,9 +132,6 @@ class StatementEditorPage:
             self.lbl_ledger_status.text = f"報表已產生: {path}"
             self.lbl_ledger_status.classes(replace="text-success")
             # Link logic todo if needed
-
-        if state.is_loading:
-            ui.notify("Loading...", type="info")
 
     def _handle_effect(self, effect):
         if effect.get("type") == "toast":

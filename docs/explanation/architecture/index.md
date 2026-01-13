@@ -7,6 +7,7 @@ The **Income Statement App** adopts a **Layered Clean Architecture** combined wi
 ## Key References
 
 - [NiceGUI MVVM + Clean Architecture](nicegui-mvvm.md)
+- For SPA navigation without full page rebuilds, use `ui.sub_pages` to avoid flicker.
 
 ## Layers
 

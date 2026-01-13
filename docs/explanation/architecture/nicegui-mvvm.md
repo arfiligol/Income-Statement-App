@@ -90,6 +90,7 @@ UI always works with `FileSource`. Infrastructure resolves it into readable inpu
 - Web mode uses `ui.upload` and persists to a temp file before creating `FileSource`.
 - Native mode uses `app.native.main_window.create_file_dialog` and returns `FileSource` with the selected path.
 - Use `webview.FileDialog.OPEN` (not `webview.OPEN_DIALOG`) to avoid pickling errors in native mode.
+- When `on_file_selected` is async, schedule it with `asyncio.create_task` to avoid un-awaited coroutine warnings.
 
 ## Background Task Strategy
 
