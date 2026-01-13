@@ -8,15 +8,20 @@ from nicegui import ui
 
 from app.ui.routers.home import register_routes
 
-# 1. Register Routes (and setup dependency graph)
-register_routes()
 
-# 2. Run App
-if __name__ in {"__main__", "__mp_main__"}:
+def run() -> None:
+    # 1. Register Routes (and setup dependency graph)
+    register_routes()
+
+    # 2. Run App
     # Common screen size for desktop apps
     ui.run(
         title="Income Statement App (Clean Arch)",
-        native=False,
+        native=True,
         window_size=(1200, 800),
         reload=True,  # Reload often causes issues with large refactors, better manual restart
     )
+
+
+if __name__ in {"__main__", "__mp_main__"}:
+    run()

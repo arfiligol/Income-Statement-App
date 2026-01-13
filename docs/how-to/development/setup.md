@@ -19,7 +19,7 @@ uv run start
 ```
 
 ### Hot Reload (Recommended for Dev)
-We provide a hot-reload script that watches for changes in the `src/` directory and restarts the application automatically.
+We provide a hot-reload script that watches for changes in the `app/` directory and restarts the application automatically.
 
 ```bash
 uv run python devtools/auto_reload.py

@@ -2,19 +2,20 @@
 
 ## Overview
 
-The **Income Statement App** adopts a **Layered Clean Architecture** combined with **Flet (Flutter for Python)** for the presentation layer. This design ensures separation of concerns, testability, and ease of maintenance.
+The **Income Statement App** adopts a **Layered Clean Architecture** combined with **NiceGUI** for the presentation layer. This design ensures separation of concerns, testability, and ease of maintenance.
 
 ## Layers
 
 The application is divided into the following layers:
 
 ### 1. Presentation Layer (UI)
-*   **Framework**: [Flet](https://flet.dev/)
+*   **Framework**: [NiceGUI](https://nicegui.io/)
 *   **Responsibility**: Rendering UI code, handling user input, and displaying state.
-*   **Pattern**: **MVVM-like (Model-View-ViewModel/State)**.
-    *   **Views**: Stateless/Stateful functional components (e.g., `WorkflowView`, `DatabaseView`). Inherit from `ft.Column` or `ft.UserControl` (Legacy).
-    *   **State**: Classes holding the reactive state (e.g., `WorkflowState`, `DatabaseState`). Changes in State trigger UI updates.
-    *   **Interaction**: `FletInteractionProvider` manages UI dialogs (alerts, confirmations) safely across threads.
+*   **Pattern**: **MVVM (ViewModel + ViewState + Effects)**.
+    *   **Views**: Pages/components under `app/ui/pages` and `app/ui/components`.
+    *   **ViewModels**: Encapsulate intents and workflow orchestration per page.
+    *   **State**: One ViewState per page/feature; view re-renders from state only.
+    *   **Effects**: One-time UI effects (toast/dialog/navigation).
 
 ### 2. Domain Layer
 *   **Responsibility**: Defining core business entities and data structures.
@@ -22,31 +23,32 @@ The application is divided into the following layers:
     *   **DTOs (Data Transfer Objects)**: Pure data classes used to pass data between layers (e.g., `LawyerDTO`, `AliasDTO`, `SeparateLedgerResultDTO`).
     *   **Interfaces**: Abstract protocols defining contracts for dependencies (e.g., `UserInteractionProvider`).
 
-### 3. Service Layer
+### 3. Application Layer
 *   **Responsibility**: Orchestrating business logic and workflows.
 *   **Components**:
-    *   `WorkflowService`: Manages complex processes like "Separate Ledger" and "Auto Fill".
-    *   `ExcelReportService`: Handles the generation and formatting of final Excel reports.
-*   **Characteristics**: Services are UI-agnostic. They interact with the UI only via abstracted interfaces (`UserInteractionProvider`).
+    *   **Use Cases**: Orchestrate "Import Excel", "Separate Ledger", "Auto Fill", and "Export".
+    *   **Ports**: Interfaces for repositories/gateways used by Use Cases.
+*   **Characteristics**: Application code depends on `domain` and ports only.
 
-### 4. Data Layer
-*   **Responsibility**: Abstraction of data sources (Database, Files).
+### 4. Infrastructure Layer
+*   **Responsibility**: Abstraction of external systems (Database, Files, OS dialogs).
 *   **Components**:
     *   **Repositories**:
         *   `AliasRepository`: CRUD for Alias data (SQLite).
         *   `LawyerRepository`: CRUD for Lawyer data (SQLite).
         *   `ExcelRepository`: Low-level wrapper for `pandas` and `openpyxl` file I/O.
-    *   **Infrastructure**:
-        *   **SQLAlchemy**: ORM for SQLite database interactions.
-        *   **OpenPyXL / Pandas**: Engines for parsing and writing Excel files.
+    *   **Gateways**:
+        *   File picker for web/native environments.
+    *   **Runtime**:
+        *   Task runners for background jobs.
 
 ## Diagram
 
 ```mermaid
 graph TD
     subgraph UI [Presentation Layer]
-        View[Flet Views] <--> State[State Management]
-        State --> Service
+        View[NiceGUI Views] <--> State[ViewState]
+        State --> UseCase
     end
 
     subgraph Domain [Domain Layer]
@@ -54,9 +56,9 @@ graph TD
         Interface[Interfaces]
     end
 
-    subgraph Logic [Service Layer]
-        Service[WorkflowService] --> Repo[Repositories]
-        Service --> Interface
+    subgraph Logic [Application Layer]
+        UseCase[Use Cases] --> Repo[Repositories]
+        UseCase --> Interface
     end
 
     subgraph Data [Data Layer]
@@ -68,7 +70,7 @@ graph TD
 ## Technology Stack
 
 *   **Language**: Python 3.13+
-*   **UI**: Flet
+*   **UI**: NiceGUI
 *   **Database**: SQLite + SQLAlchemy
 *   **Data Processing**: Pandas, OpenPyXL
 *   **Distribution**: Briefcase

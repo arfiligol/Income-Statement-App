@@ -21,11 +21,12 @@ class FileSourcePicker(ui.element):
         from nicegui import app
 
         self.on_file_selected = on_file_selected
-        # Auto-detect if not provided
         if is_native is None:
-            # FIXME: Reliable native mode detection is currently unavailable via app.native.
-            # Defaulting to False (web mode) which matches main.py configuration.
-            self.is_native = False
+            import sys
+
+            # Simple heuristic: If main.py requested native=True, usually 'webview' is imported.
+            self.is_native = "webview" in sys.modules
+            print(f"DEBUG: Auto-detected native mode: {self.is_native}")
         else:
             self.is_native = is_native
 
@@ -94,6 +95,7 @@ class FileSourcePicker(ui.element):
 
     async def _handle_native_pick(self):
         try:
+            import webview
             from nicegui import app
 
             # Verify if native mode is active and main_window is available
@@ -102,7 +104,7 @@ class FileSourcePicker(ui.element):
                 return
 
             file_paths = await app.native.main_window.create_file_dialog(
-                dialog_type=app.native.main_window.OPEN_DIALOG,
+                dialog_type=webview.OPEN_DIALOG,
                 allow_multiple=False,
                 file_types=("Excel Files (*.xlsx;*.xls)", "All Files (*.*)"),
             )

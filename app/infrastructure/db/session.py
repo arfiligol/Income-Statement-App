@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from src.models.db.base import Base
+from app.infrastructure.db.base import Base
 
 load_dotenv()
 
@@ -23,16 +23,12 @@ def _resolve_database_path() -> Path:
     if getattr(sys, "frozen", False):
         base_dir = Path(sys.executable).resolve().parent
     else:
-        # Assuming we are in src/data/db/, so parents[3] leads to root?
-        # No, __file__ is src/data/db/session.py
-        # root is ../../../
-        # But previous was parents[2] because it was in src/services/dao/
         base_dir = Path(__file__).resolve().parents[3]
 
     db_filename = os.getenv("DATABASE_FILENAME", "sqlite_db.db")
     db_path = base_dir / "data" / db_filename
     if not db_path.parent.exists():
-        logging.info("偵測到 SQLite 資料庫目錄不存在，自動創建...")
+        logging.info("SQLite database directory missing, creating it.")
         db_path.parent.mkdir(parents=True, exist_ok=True)
     return db_path
 

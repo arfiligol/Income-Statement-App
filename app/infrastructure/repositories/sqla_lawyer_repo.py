@@ -1,16 +1,11 @@
 from app.application.ports.repositories import LawyerRepository
 from app.domain.dto.lawyer import Lawyer
-from src.data.db.session import session_scope
-
-# Adapting legacy src code
-from src.models.db.lawyer import Lawyer as DbLawyer
+from app.infrastructure.db.lawyer import Lawyer as DbLawyer
+from app.infrastructure.db.session import session_scope
 
 
 class SQLALawyerRepository(LawyerRepository):
-    """
-    SQLAlchemy implementation of LawyerRepository.
-    Wraps the legacy src.data.db.session logic.
-    """
+    """SQLAlchemy implementation of LawyerRepository."""
 
     def get_all(self) -> list[Lawyer]:
         with session_scope() as session:

@@ -1,16 +1,11 @@
 from app.application.ports.repositories import AliasRepository
 from app.domain.dto.alias import Alias
-from src.data.db.session import session_scope
-
-# Adapting legacy src code
-from src.models.db.alias import Alias as DbAlias
+from app.infrastructure.db.alias import Alias as DbAlias
+from app.infrastructure.db.session import session_scope
 
 
 class SQLAAliasRepository(AliasRepository):
-    """
-    SQLAlchemy implementation of AliasRepository.
-    Wraps legacy src.data.db.session logic.
-    """
+    """SQLAlchemy implementation of AliasRepository."""
 
     def get_all(self) -> list[Alias]:
         with session_scope() as session:

@@ -18,18 +18,31 @@ def app_shell(content_builder: Callable):
 
     # 2. Header
     with ui.header().classes(
-        "bg-slate-900 text-white h-16 px-6 items-center shadow-md"
+        "bg-white dark:bg-slate-900 text-slate-900 dark:text-white h-16 px-6 items-center shadow-sm border-b border-slate-200 dark:border-slate-800"
     ):
         ui.button(icon="menu", on_click=lambda: left_drawer.toggle()).props(
             "flat round dense"
-        )
+        ).classes("text-slate-600 dark:text-slate-300")
         ui.label("Income Statement App").classes("text-lg font-bold ml-4")
 
         ui.space()
 
         # Dark Mode Toggle
+        # Note: ui.dark_mode toggles Quasar's body--dark. We also need Tailwind's 'dark' class.
         dark = ui.dark_mode()
-        ui.button(icon="dark_mode", on_click=dark.toggle).props("flat round dense")
+
+        def toggle_dark_mode():
+            dark.toggle()
+            # Toggle 'dark' class on body for Tailwind
+            ui.run_javascript(
+                "if (document.body.classList.contains('dark')) "
+                "{ document.body.classList.remove('dark'); } "
+                "else { document.body.classList.add('dark'); }"
+            )
+
+        ui.button(icon="dark_mode", on_click=toggle_dark_mode).props(
+            "flat round dense"
+        ).classes("text-slate-600 dark:text-slate-300")
 
     # 3. Sidebar (Drawer)
     with ui.left_drawer(value=True).classes(
