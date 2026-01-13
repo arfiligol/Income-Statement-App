@@ -2,6 +2,8 @@ from nicegui import ui
 
 from app.application.use_cases.auto_fill import AutoFillUseCase
 from app.application.use_cases.import_excel import ImportExcelUseCase
+from app.application.use_cases.separate_ledger import SeparateLedgerUseCase
+from app.infrastructure.gateways.excel_report_gateway import ExcelReportGateway
 from app.infrastructure.gateways.nicegui_interaction import NiceGUIInteractionGateway
 from app.infrastructure.repositories.excel_pandas_repo import ExcelPandasRepository
 from app.infrastructure.repositories.sqla_alias_repo import SQLAAliasRepository
@@ -25,16 +27,19 @@ def register_routes():
         lawyer_repo = SQLALawyerRepository()
         alias_repo = SQLAAliasRepository()
         interaction_gw = NiceGUIInteractionGateway()
+        report_gw = ExcelReportGateway()
 
         # 2. Application
         import_use_case = ImportExcelUseCase(excel_repo)
         auto_fill_use_case = AutoFillUseCase(
             excel_repo, lawyer_repo, alias_repo, interaction_gw
         )
+        sep_ledger_use_case = SeparateLedgerUseCase(excel_repo, lawyer_repo, report_gw)
 
         # 3. UI (ViewModel + Page)
-        # Note: StatementViewModel needs both use cases
-        vm = StatementViewModel(import_use_case, auto_fill_use_case)
+        vm = StatementViewModel(
+            import_use_case, auto_fill_use_case, sep_ledger_use_case
+        )
         page = StatementEditorPage(vm)
 
         # 4. Render

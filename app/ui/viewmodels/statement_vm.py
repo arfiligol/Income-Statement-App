@@ -3,8 +3,10 @@ from typing import List, Optional
 
 from app.application.use_cases.auto_fill import AutoFillUseCase
 from app.application.use_cases.import_excel import ImportExcelUseCase
+from app.application.use_cases.separate_ledger import SeparateLedgerUseCase
 from app.domain.dto.auto_fill import AutoFillResult
 from app.domain.dto.file_source import FileSource
+from app.domain.dto.separate_ledger import SeparateLedgerResult
 from app.domain.dto.statement import Statement
 from app.ui.viewmodels.base import BaseViewModel
 
@@ -14,6 +16,7 @@ class StatementState:
     file_source: Optional[FileSource] = None
     statement: Optional[Statement] = None
     auto_fill_result: Optional[AutoFillResult] = None
+    separate_ledger_result: Optional[SeparateLedgerResult] = None
     is_loading: bool = False
     error_message: Optional[str] = None
 
@@ -28,13 +31,15 @@ class StatementViewModel(BaseViewModel[StatementState]):
     """
 
     def __init__(
-        self, import_use_case: ImportExcelUseCase, auto_fill_use_case: AutoFillUseCase
+        self,
+        import_use_case: ImportExcelUseCase,
+        auto_fill_use_case: AutoFillUseCase,
+        separate_ledger_use_case: SeparateLedgerUseCase,
     ):
         super().__init__(StatementState())
         self._import_use_case = import_use_case
         self._auto_fill_use_case = auto_fill_use_case
-
-    # -- Intents --
+        self._separate_ledger_use_case = separate_ledger_use_case
 
     async def handle_file_selected(self, source: FileSource):
         """Intent: User selected a file (Uploaded or Native Picked)."""
@@ -103,6 +108,53 @@ class StatementViewModel(BaseViewModel[StatementState]):
                     {
                         "type": "toast",
                         "message": f"Auto-fill failed: {error_msg}",
+                        "level": "error",
+                    }
+                )
+        except Exception as e:
+            self.update_state(is_loading=False, error_message=str(e))
+            self.emit_effect(
+                {
+                    "type": "toast",
+                    "message": f"Unexpected error: {str(e)}",
+                    "level": "error",
+                }
+            )
+
+    async def handle_run_separate_ledger(self):
+        """Intent: Run Step 3 (Separate Ledger)."""
+        if not self.state.file_source:
+            self.emit_effect(
+                {
+                    "type": "toast",
+                    "message": "Please select a file first.",
+                    "level": "warning",
+                }
+            )
+            return
+
+        self.update_state(is_loading=True)
+        try:
+            # We assume AutoFill is done or implicit.
+            result = self._separate_ledger_use_case.execute(self.state.file_source)
+            if result.is_success:
+                self.update_state(separate_ledger_result=result.value, is_loading=False)
+                # Effect: Download or Show success
+                path = result.value.output_path
+                self.emit_effect(
+                    {
+                        "type": "toast",
+                        "message": f"Report generated at {path}",
+                        "level": "success",
+                    }
+                )
+            else:
+                error_msg = str(result.error)
+                self.update_state(is_loading=False, error_message=error_msg)
+                self.emit_effect(
+                    {
+                        "type": "toast",
+                        "message": f"Separate Ledger failed: {error_msg}",
                         "level": "error",
                     }
                 )

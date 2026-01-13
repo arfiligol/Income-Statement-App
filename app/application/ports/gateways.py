@@ -1,7 +1,9 @@
 from typing import Optional, Protocol
 
+from app.common.types import Result
 from app.domain.dto.auto_fill import AutoFillPrompt, AutoFillResponse
 from app.domain.dto.file_source import FileSource
+from app.domain.dto.separate_ledger import SeparateLedgerResult
 
 
 class FilePickerGateway(Protocol):
@@ -26,4 +28,14 @@ class UserInteractionGateway(Protocol):
 
     async def select_lawyers(self, prompt: AutoFillPrompt) -> AutoFillResponse:
         """Asks the user to select lawyers from a list."""
+        ...
+
+
+class ReportGateway(Protocol):
+    """Interface for generating reports."""
+
+    def generate_ledger_report(
+        self, data: SeparateLedgerResult, output_path: str
+    ) -> Result[str, Exception]:
+        """Generates the separate ledger Excel report."""
         ...
