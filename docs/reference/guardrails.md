@@ -19,6 +19,8 @@ All AI agents must read this file before proposing or implementing changes.
 - Use `with` context for UI tree composition; do not pass parent explicitly.
 - Prefer `ui.row`, `ui.column`, `ui.card`, `ui.grid`, and layout elements (header/drawer/footer) for structure.
 - Do not mix unrelated layouts in a single function; isolate into components.
+- `ui.page_container` is not available in this NiceGUI version; use `ui.element('div').classes('q-page-container')`
+  and `ui.element('div').classes('q-page')` to preserve Quasar layout semantics.
 
 ### Controls
 
