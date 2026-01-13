@@ -19,10 +19,10 @@ uv run start
 ```
 
 ### Hot Reload (Recommended for Dev)
-We provide a hot-reload script that watches for changes in the `app/` directory and restarts the application automatically.
+NiceGUI supports hot reload via the `reload` flag. Enable it with:
 
 ```bash
-uv run python devtools/auto_reload.py
+NICEGUI_RELOAD=1 python main.py
 ```
 
 ## Packaging

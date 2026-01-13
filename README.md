@@ -34,6 +34,12 @@ uv run start
 python main.py
 ```
 
+如需 Hot Reload：
+
+```bash
+NICEGUI_RELOAD=1 python main.py
+```
+
 ## 安裝說明 (開發者)
 
 本專案使用 `uv` 進行套件管理。
