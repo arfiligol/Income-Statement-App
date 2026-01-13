@@ -84,6 +84,13 @@ Define a unified `FileSource` DTO:
 
 UI always works with `FileSource`. Infrastructure resolves it into readable input.
 
+### Implementation Notes (NiceGUI + Native)
+
+- The file picker UI is in `app/ui/components/widgets/file_source_picker.py`.
+- Web mode uses `ui.upload` and persists to a temp file before creating `FileSource`.
+- Native mode uses `app.native.main_window.create_file_dialog` and returns `FileSource` with the selected path.
+- Use `webview.FileDialog.OPEN` (not `webview.OPEN_DIALOG`) to avoid pickling errors in native mode.
+
 ## Background Task Strategy
 
 Excel import and heavy compute must run off the UI thread.
