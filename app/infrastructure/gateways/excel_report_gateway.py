@@ -1,5 +1,3 @@
-from typing import List
-
 import openpyxl
 from openpyxl.styles import Alignment, Border, Font, Side
 

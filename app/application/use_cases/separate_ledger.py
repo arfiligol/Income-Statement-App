@@ -39,7 +39,7 @@ class SeparateLedgerUseCase:
             header_index = self._locate_header_index(rows)
             data_rows = rows[header_index + 1 :]
 
-            result_rows: List[SeparateLedgerRow] = []
+            result_rows: list[SeparateLedgerRow] = []
             total_debit = 0
             total_credit = 0
 
@@ -128,7 +128,7 @@ class SeparateLedgerUseCase:
         except Exception as e:
             return Result.failure(e)
 
-    def _locate_header_index(self, rows: List[List]) -> int:
+    def _locate_header_index(self, rows: list[list]) -> int:
         for idx, row in enumerate(rows):
             if len(row) < 10:
                 continue

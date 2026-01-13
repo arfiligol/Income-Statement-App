@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from app.application.ports.repositories import AliasRepository
 from app.domain.dto.alias import Alias
 from src.data.db.session import session_scope
@@ -14,7 +12,7 @@ class SQLAAliasRepository(AliasRepository):
     Wraps legacy src.data.db.session logic.
     """
 
-    def get_all(self) -> List[Alias]:
+    def get_all(self) -> list[Alias]:
         with session_scope() as session:
             db_aliases = session.query(DbAlias).order_by(DbAlias.source_code).all()
             return [
@@ -29,7 +27,7 @@ class SQLAAliasRepository(AliasRepository):
                 for a in db_aliases
             ]
 
-    def get_by_source(self, source_code: str) -> Optional[Alias]:
+    def get_by_source(self, source_code: str) -> Alias | None:
         with session_scope() as session:
             db_alias = session.get(DbAlias, source_code)
             if db_alias:

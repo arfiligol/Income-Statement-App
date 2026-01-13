@@ -1,4 +1,4 @@
-from typing import List, Set, Tuple
+from typing import Any
 
 from app.application.ports.gateways import UserInteractionGateway
 from app.application.ports.repositories import (
@@ -37,7 +37,7 @@ class AutoFillUseCase:
             if not rows_result.is_success:
                 return Result.failure(rows_result.error)
 
-            rows = rows_result.value  # List[List[Any]]
+            rows = rows_result.value  # list[list[Any]]
 
             # 2. Locate Header
             header_index, header_row = self._locate_header(rows)
@@ -49,7 +49,7 @@ class AutoFillUseCase:
             known_codes_set = set(known_lawyers)
 
             updated_count = 0
-            updates: List[Tuple[int, int, str]] = []  # (row, col, value)
+            updates: list[tuple[int, int, str]] = []  # (row, col, value)
             skip_manual = False
 
             # 4. Iterate Rows
@@ -132,7 +132,7 @@ class AutoFillUseCase:
         except Exception as e:
             return Result.failure(e)
 
-    def _locate_header(self, rows: List[List[Any]]) -> Tuple[int, List[Any]]:
+    def _locate_header(self, rows: list[list[Any]]) -> tuple[int, list[Any]]:
         for idx, row in enumerate(rows):
             if len(row) < 10:
                 continue
@@ -141,7 +141,7 @@ class AutoFillUseCase:
                 return idx, row
         raise Exception("Header not found (expected '備註' in column 10)")
 
-    def _find_matches(self, summary: str, known_codes: Set[str]) -> List[str]:
+    def _find_matches(self, summary: str, known_codes: set[str]) -> list[str]:
         # 1. Direct match with aliases
         # (Assuming we have aliases loaded or repo calls)
         # For Optimization, we should load aliases once.
@@ -154,7 +154,7 @@ class AutoFillUseCase:
         # Skipping alias logic for brevity in this step, focusing on flow.
         return matches
 
-    def _apply_updates(self, row_num: int, codes: List[str], updates: List):
+    def _apply_updates(self, row_num: int, codes: list[str], updates: list):
         # Join unique codes
         val = " ".join(list(dict.fromkeys(codes)))
         # Update col 10 (index 10 for 1-based openpyxl)

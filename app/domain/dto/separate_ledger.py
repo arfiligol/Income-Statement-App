@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List
 
 
 @dataclass
@@ -15,7 +14,7 @@ class SeparateLedgerRow:
 
 @dataclass
 class SeparateLedgerResult:
-    rows: List[SeparateLedgerRow]
+    rows: list[SeparateLedgerRow]
     total_debit: int
     total_credit: int
     output_path: str = ""

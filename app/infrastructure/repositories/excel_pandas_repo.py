@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Tuple
+from typing import Any
 
 import openpyxl
 import pandas as pd
@@ -49,7 +49,7 @@ class ExcelPandasRepository(ExcelRepository):
         except Exception as e:
             return Result.failure(e)
 
-    def read_raw_rows(self, source: FileSource) -> Result[List[List[Any]], Exception]:
+    def read_raw_rows(self, source: FileSource) -> Result[list[list[Any]], Exception]:
         try:
             file_path = self._resolve_source(source)
             if not file_path:
@@ -64,7 +64,7 @@ class ExcelPandasRepository(ExcelRepository):
             return Result.failure(InfrastructureError(f"Failed to read raw rows: {e}"))
 
     def update_cells(
-        self, source: FileSource, updates: List[Tuple[int, int, Any]]
+        self, source: FileSource, updates: list[tuple[int, int, Any]]
     ) -> Result[int, Exception]:
         """
         updates: List of (row_index, col_index, value).
@@ -91,7 +91,7 @@ class ExcelPandasRepository(ExcelRepository):
         except Exception as e:
             return Result.failure(InfrastructureError(f"Failed to update cells: {e}"))
 
-    def _resolve_source(self, source: FileSource) -> Optional[str]:
+    def _resolve_source(self, source: FileSource) -> str | None:
         if source.is_local:
             return str(source.path)
         if source.path:

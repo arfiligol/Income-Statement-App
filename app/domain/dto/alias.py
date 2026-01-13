@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import List
 
 
 @dataclass
@@ -11,4 +10,4 @@ class Alias:
     """
 
     source_code: str
-    target_codes: List[str] = field(default_factory=list)
+    target_codes: list[str] = field(default_factory=list)

@@ -1,5 +1,4 @@
-from dataclasses import dataclass, field
-from typing import List, Optional
+from dataclasses import dataclass
 
 from app.application.use_cases.auto_fill import AutoFillUseCase
 from app.application.use_cases.import_excel import ImportExcelUseCase
@@ -13,12 +12,12 @@ from app.ui.viewmodels.base import BaseViewModel
 
 @dataclass
 class StatementState:
-    file_source: Optional[FileSource] = None
-    statement: Optional[Statement] = None
-    auto_fill_result: Optional[AutoFillResult] = None
-    separate_ledger_result: Optional[SeparateLedgerResult] = None
+    file_source: FileSource | None = None
+    statement: Statement | None = None
+    auto_fill_result: AutoFillResult | None = None
+    separate_ledger_result: SeparateLedgerResult | None = None
     is_loading: bool = False
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
     @property
     def has_file(self) -> bool:
