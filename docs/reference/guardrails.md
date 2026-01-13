@@ -1,6 +1,7 @@
 # NiceGUI Guardrails (Official Docs Alignment)
 
 This document defines the minimum compliance rules for NiceGUI usage in this app.
+All AI agents must read this file before proposing or implementing changes.
 
 ## Official References
 
