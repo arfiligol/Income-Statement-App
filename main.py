@@ -19,7 +19,7 @@ def run() -> None:
         title="Income Statement App (Clean Arch)",
         native=True,
         window_size=(1200, 800),
-        reload=os.getenv("NICEGUI_RELOAD") == "1",
+        reload=False,
     )
 
 

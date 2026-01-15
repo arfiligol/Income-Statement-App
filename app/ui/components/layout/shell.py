@@ -1,11 +1,16 @@
+import time
 from pathlib import Path
 from typing import Callable
 
 from nicegui import ui
 
+from app.services.update_manager import UpdateManager
+from app.ui.components.dialogs.update_dialog import UpdateDialog
 from app.ui.state.app_store import AppStore
 
 _styles_loaded = False
+_last_check_time = 0.0
+_cached_update_info = (False, None)
 
 
 def app_shell(content_builder: Callable):
@@ -28,6 +33,24 @@ def app_shell(content_builder: Callable):
             f"document.body.classList.toggle('dark', {str(is_dark).lower()});"
         )
 
+    async def check_updates():
+        global _last_check_time, _cached_update_info
+
+        # Cache for 1 hour to prevent API rate limits
+        if time.time() - _last_check_time < 3600:
+            exists, ver = _cached_update_info
+        else:
+            mgr = UpdateManager()
+            exists, ver = await ui.run.io_bound(mgr.check_for_update)
+            _last_check_time = time.time()
+            _cached_update_info = (exists, ver)
+
+        if exists and ver:
+            update_btn.classes(remove="hidden")
+            update_btn.tooltip(f"New version {ver} available")
+            # Re-bind click to include version
+            update_btn.on_click(lambda: UpdateDialog(UpdateManager(), ver).open())
+
     # 1. Global Theme/Style setup (single source of truth)
     dark = ui.dark_mode()
     apply_dark_mode(store.state.is_dark_mode)
@@ -46,6 +69,15 @@ def app_shell(content_builder: Callable):
         ui.label("Income Statement App").classes("text-lg font-bold ml-4")
 
         ui.space()
+
+        # Update Button
+        update_btn = (
+            ui.button("Upgrade!", icon="cloud_download")
+            .props("unelevated color=deep-orange size=sm")
+            .classes("mr-4 hidden font-bold")
+        )
+
+        ui.timer(1.0, check_updates, once=True)
 
         # Dark Mode Toggle
         # Note: ui.dark_mode toggles Quasar's body--dark. We also need Tailwind's 'dark' class.
