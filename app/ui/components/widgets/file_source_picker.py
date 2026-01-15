@@ -1,5 +1,6 @@
 import asyncio
-from typing import Callable, Optional
+from typing import Callable
+
 
 from nicegui import events, ui
 
@@ -16,7 +17,7 @@ class FileSourcePicker(ui.element):
     def __init__(
         self,
         on_file_selected: Callable[[FileSource], None],
-        is_native: Optional[bool] = None,
+        is_native: bool | None = None,
     ):
         super().__init__("div")
         from nicegui import app

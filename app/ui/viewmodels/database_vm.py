@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional
+
 
 from app.application.ports.repositories import (
     CodeReplacementRepository,
@@ -15,7 +15,7 @@ class DatabaseState:
     lawyers: list[Lawyer] = field(default_factory=list)
     replacements: list[CodeReplacement] = field(default_factory=list)
     is_loading: bool = False
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 class DatabaseViewModel(BaseViewModel[DatabaseState]):

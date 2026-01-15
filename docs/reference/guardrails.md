@@ -60,6 +60,17 @@
 - Web/Native 差異隔離於 Infrastructure Gateways。
 - 每個頁面只有一個 ViewState；效果不儲存於 State。
 
+### Python 程式碼規範 (Coding Standards)
+
+- **Python 版本**: 專案目標為 Python 3.13+，最低支援 Python 3.10。
+- **型別提示 (Type Hints)**:
+  - 必須使用 Python 3.10+ 的原生語法。
+  - 禁止使用已棄用的 `typing` 模組別名：`List`, `Dict`, `Tuple`, `Set`, `Type`。
+    - 使用 `list`, `dict`, `tuple`, `set`, `type` 代替。
+  - 禁止使用 `Optional[T]` 與 `Union[A, B]`。
+    - 使用 `T | None` 與 `A | B` 代替。
+  - 僅保留必要的 `typing` 導入 (如 `Any`, `Callable`, `Protocol`, `cast` 等)。
+
 ### 跨平台相容性 (Cross-Platform Compatibility)
 
 - **路徑處理**: 必須使用 `pathlib.Path`；禁止字串連接路徑。

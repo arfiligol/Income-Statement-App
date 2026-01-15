@@ -47,10 +47,12 @@ def build():
     # PyInstaller syntax: source;dest
     sep = ";" if platform.system() == "Windows" else ":"
     cmd.extend(["--add-data", f"app/ui/styles{sep}app/ui/styles"])
+    cmd.extend(["--add-data", f"app/static{sep}app/static"])
 
     # Platform specific
     if platform.system() == "Windows":
-        cmd.extend(["--icon", "app/static/mom_accounting.ico"])
+        icon_path = Path("app/static/mom_accounting.ico").resolve()
+        cmd.extend(["--icon", str(icon_path)])
     elif platform.system() == "Darwin":  # macOS
         cmd.extend(["--windowed", "--icon", "app/static/mom_accounting.icns"])
 

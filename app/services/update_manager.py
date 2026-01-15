@@ -6,9 +6,11 @@ import sys
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import Optional, Tuple
+
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from app.common.version import __version__
 
@@ -23,16 +25,27 @@ GITHUB_API_URL = (
 class UpdateManager:
     def __init__(self):
         self.current_version = __version__
-        self.latest_version: Optional[str] = None
-        self.download_url: Optional[str] = None
+        self.latest_version: str | None = None
+        self.download_url: str | None = None
 
-    def check_for_update(self) -> Tuple[bool, Optional[str]]:
+    def check_for_update(self) -> tuple[bool, str | None]:
         """
         Check GitHub for the latest release.
         Returns: (has_update, latest_version_tag)
         """
         try:
-            response = requests.get(GITHUB_API_URL, timeout=5)
+            # Configure retry strategy
+            retry_strategy = Retry(
+                total=3,
+                backoff_factor=1,
+                status_forcelist=[429, 500, 502, 503, 504],
+            )
+            adapter = HTTPAdapter(max_retries=retry_strategy)
+            session = requests.Session()
+            session.mount("https://", adapter)
+            session.mount("http://", adapter)
+
+            response = session.get(GITHUB_API_URL, timeout=15)
             response.raise_for_status()
             data = response.json()
 
@@ -58,7 +71,7 @@ class UpdateManager:
             print(f"Update check failed: {e}")
             return False, None
 
-    def _get_asset_url(self, assets: list) -> Optional[str]:
+    def _get_asset_url(self, assets: list) -> str | None:
         """Find platform specific asset."""
         system = platform.system().lower()
         # Look for "windows" or "macos/darwin" in the name, and must be .zip
@@ -138,7 +151,7 @@ class UpdateManager:
             print(f"Update failed: {e}")
             raise e
 
-    def _find_app_root(self, extract_dir: Path) -> Optional[Path]:
+    def _find_app_root(self, extract_dir: Path) -> Path | None:
         """Find the executable folder (Windows) or .app (macOS) in extracted files."""
         # Simple heuristic: Look for folder matching APP_NAME
         # The zip structure from build.py is:
@@ -183,8 +196,8 @@ class UpdateManager:
 echo Waiting for application to exit...
 timeout /t 3 /nobreak > nul
 
-:: Force kill just in case
-taskkill /F /IM IncomeStatement.exe > nul 2>&1
+:: Force kill just in case (Kill Tree)
+taskkill /F /T /IM IncomeStatement.exe > nul 2>&1
 
 echo Moving files...
 :RETRY
@@ -193,7 +206,7 @@ move /Y "{current}" "{current}.bak"
 if errorlevel 1 (
     echo File locked, retrying...
     timeout /t 2 /nobreak > nul
-    taskkill /F /IM IncomeStatement.exe > nul 2>&1
+    taskkill /F /T /IM IncomeStatement.exe > nul 2>&1
     goto RETRY
 )
 
@@ -212,7 +225,8 @@ start "" "{current}\IncomeStatement.exe"
         with open(script_path, "w") as f:
             f.write(script_content)
 
-        subprocess.Popen([str(script_path)], shell=True)
+        # Run with CWD set to temp_dir to avoid locking the application directory
+        subprocess.Popen([str(script_path)], shell=True, cwd=str(temp_dir))
         os._exit(0)
 
     def _run_macos_update(self, current: Path, new: Path, temp_dir: Path):

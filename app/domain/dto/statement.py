@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass
@@ -10,8 +10,8 @@ class StatementLineItem:
     month: int
     description: str
     amount: float
-    category: Optional[str] = None
-    remarks: Optional[str] = None
+    category: str | None = None
+    remarks: str | None = None
 
 
 @dataclass
