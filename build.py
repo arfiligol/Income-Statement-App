@@ -5,6 +5,8 @@ import subprocess
 import zipfile
 from pathlib import Path
 
+from app.common.version import __version__
+
 # Configuration
 APP_NAME = "IncomeStatement"
 MAIN_SCRIPT = "main.py"
@@ -39,28 +41,20 @@ def build():
         "--onedir",
         "--name",
         APP_NAME,
-        # "--windowed", # nicegui-pack adds this by default usually? Better explicit.
-        # "--add-data", "app/static:app/static", # Example if needed
     ]
+
+    # Add Styles (Windows separator ';', Mac uses ':')
+    # PyInstaller syntax: source;dest
+    sep = ";" if platform.system() == "Windows" else ":"
+    cmd.extend(["--add-data", f"app/ui/styles{sep}app/ui/styles"])
 
     # Platform specific
     if platform.system() == "Windows":
-        cmd.extend(
-            ["--windowed", "--icon", "app/static/icon.ico"]
-        )  # Ensure icon exists or remove
+        cmd.extend(["--windowed", "--icon", "app/static/mom_accounting.ico"])
     elif platform.system() == "Darwin":  # macOS
-        cmd.extend(
-            ["--windowed", "--icon", "app/static/icon.icns"]
-        )  # Ensure icon exists or remove
+        cmd.extend(["--windowed", "--icon", "app/static/mom_accounting.icns"])
 
     cmd.append(MAIN_SCRIPT)
-
-    # Check if icon files exist, if not remove icon arg
-    # (Implementation detail: for now we skip icon check to avoid breaking if file missing,
-    # but strictly we should have icons. I will remove icon and add-data for now to be safe,
-    # user can add later or I'll check existence).
-    # Simplified cmd:
-    cmd = ["nicegui-pack", "--onedir", "--name", APP_NAME, MAIN_SCRIPT]
 
     subprocess.check_call(cmd)
     print(f"Build complete. Artifacts in {DIST_DIR}/{APP_NAME}")
@@ -71,7 +65,8 @@ def zip_artifacts():
     print("Zipping artifacts...")
 
     system = platform.system().lower()
-    zip_name = "macos.zip" if system == "darwin" else "windows.zip"
+    # E.g. IncomeStatement-windows-0.1.0.zip
+    zip_name = f"{APP_NAME}-{system}-{__version__}.zip"
     zip_path = DIST_DIR / zip_name
 
     # The artifact folder

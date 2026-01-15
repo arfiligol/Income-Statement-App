@@ -13,6 +13,12 @@ def run() -> None:
     # 1. Register Routes (and setup dependency graph)
     register_routes()
 
+    # Ensure clean exit on shutdown to prevent hanging processes (e.g. background threads)
+    from nicegui import app
+    import os
+
+    app.on_shutdown(lambda: os._exit(0))
+
     # 2. Run App
     # Common screen size for desktop apps
     ui.run(
@@ -24,4 +30,7 @@ def run() -> None:
 
 
 if __name__ in {"__main__", "__mp_main__"}:
-    run()
+    try:
+        run()
+    except KeyboardInterrupt:
+        pass

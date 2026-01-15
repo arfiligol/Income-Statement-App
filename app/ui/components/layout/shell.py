@@ -10,7 +10,7 @@ from app.ui.state.app_store import AppStore
 
 _styles_loaded = False
 _last_check_time = 0.0
-_cached_update_info = (False, None)
+_cached_update_info = (False, None, None)
 
 
 def app_shell(content_builder: Callable):
@@ -38,18 +38,26 @@ def app_shell(content_builder: Callable):
 
         # Cache for 1 hour to prevent API rate limits
         if time.time() - _last_check_time < 3600:
-            exists, ver = _cached_update_info
+            exists, ver, url = _cached_update_info
         else:
             mgr = UpdateManager()
             exists, ver = await run.io_bound(mgr.check_for_update)
+            url = mgr.download_url
             _last_check_time = time.time()
-            _cached_update_info = (exists, ver)
+            _cached_update_info = (exists, ver, url)
 
         if exists and ver:
             update_btn.classes(remove="hidden")
             update_btn.tooltip(f"New version {ver} available")
+
+            def start_update():
+                # Re-create manager with cached URL
+                m = UpdateManager()
+                m.download_url = url
+                UpdateDialog(m, ver).open()
+
             # Re-bind click to include version
-            update_btn.on_click(lambda: UpdateDialog(UpdateManager(), ver).open())
+            update_btn.on_click(start_update)
 
     # 1. Global Theme/Style setup (single source of truth)
     dark = ui.dark_mode()
@@ -77,7 +85,15 @@ def app_shell(content_builder: Callable):
             .classes("mr-4 hidden font-bold")
         )
 
-        ui.timer(1.0, check_updates, once=True)
+        # Use a background task for update check that doesn't block shutdown
+        # Triggered once after startup. Using timer is fine if we handle exceptions or use run.io_bound correctly.
+        # But 'run.io_bound' keeps a thread pool.
+        # Let's try explicitly handling it or just re-enable it now that Ctrl+C is cleaner?
+        # User said "Window close -> delayed but clean" BUT "Ctrl+C -> error".
+        # We fixed Ctrl+C error.
+        # The delay might be unavoidable if requests is waiting.
+        # Let's uncomment it but maybe increase delay to ensure UI loads first?
+        ui.timer(2.0, check_updates, once=True)
 
         # Dark Mode Toggle
         # Note: ui.dark_mode toggles Quasar's body--dark. We also need Tailwind's 'dark' class.

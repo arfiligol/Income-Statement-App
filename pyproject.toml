@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "income-statement-app"
-version = "0.1.5"
+version = "0.1.9"
 description = "A helper application for ledger separation and accounting."
 readme = "README.md"
 requires-python = ">=3.13"
@@ -30,6 +30,7 @@ dev = [
     "basedpyright>=1.35.0",
     "briefcase>=0.3.26",
     "nuitka>=2.8.9",
+    "pillow>=12.1.0",
     "pyinstaller>=6.17.0",
     "ruff>=0.14.8",
     "zstandard>=0.25.0",

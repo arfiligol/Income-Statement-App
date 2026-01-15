@@ -37,7 +37,11 @@ class UpdateManager:
             data = response.json()
 
             tag_name = data.get("tag_name", "").strip().lstrip("v")
-            self.download_url = self._get_asset_url(data.get("assets", []))
+            assets = data.get("assets", [])
+            print(f"DEBUG: Found tag: {tag_name}")
+            print(f"DEBUG: Available assets: {[a.get('name') for a in assets]}")
+
+            self.download_url = self._get_asset_url(assets)
 
             if not tag_name or not self.download_url:
                 print("No valid release tag or asset found.")
@@ -57,10 +61,12 @@ class UpdateManager:
     def _get_asset_url(self, assets: list) -> Optional[str]:
         """Find platform specific asset."""
         system = platform.system().lower()
-        target_name = "macos.zip" if system == "darwin" else "windows.zip"
+        # Look for "windows" or "macos/darwin" in the name, and must be .zip
+        target_os = "macos" if system == "darwin" else "windows"
 
         for asset in assets:
-            if asset.get("name") == target_name:
+            name = asset.get("name", "").lower()
+            if target_os in name and name.endswith(".zip"):
                 return asset.get("browser_download_url")
         return None
 
@@ -70,6 +76,18 @@ class UpdateManager:
         """
         if not self.download_url:
             raise ValueError("No download URL found. Run check_for_update first.")
+
+        # SAFETY CHECK: Prevent running update logic in dev mode
+        if not getattr(sys, "frozen", False):
+            print(
+                "Running in development mode. Skipping download and swap to protect source code."
+            )
+            print(
+                "To test full update, please build the app using 'python build.py' and run the executable."
+            )
+            if progress_callback:
+                progress_callback(1.0)  # Simulate completion
+            return
 
         # 1. Download
         temp_dir = Path(tempfile.mkdtemp(prefix="IncomeStatement_Update_"))
