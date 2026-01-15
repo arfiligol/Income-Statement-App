@@ -11,7 +11,6 @@ class UpdateDialog:
         self.version = version
         self.dialog = ui.dialog().props("persistent")
         self.progress = None
-        self.progress_label = None
         self.status = None
 
     def open(self):
@@ -21,17 +20,8 @@ class UpdateDialog:
 
             self.status = ui.label("準備下載...").classes("text-sm mb-2")
 
-            # Progress bar with customized label via slot
-            self.progress = (
-                ui.linear_progress(value=0)
-                .classes("w-full mb-4 h-6 rounded")
-                .props("size=25px rounded color=primary track-color=grey-3")
-            )
-            with self.progress:
-                with ui.element("div").classes("absolute-full flex flex-center"):
-                    self.progress_label = ui.label("0%").classes(
-                        "text-white text-xs font-bold"
-                    )
+            # Simple progress bar (visual only)
+            self.progress = ui.linear_progress(value=0).classes("w-full mb-4")
 
             with ui.row().classes("w-full justify-end"):
                 ui.button("開始更新", on_click=self._start_update).props(
@@ -58,8 +48,6 @@ class UpdateDialog:
 
             self.status.set_text("下載完成！正在重啟...")
             self.progress.set_value(1.0)
-            if self.progress_label:
-                self.progress_label.set_text("100%")
 
         except Exception as ex:
             self.status.set_text(f"更新失敗: {ex}")
@@ -76,9 +64,9 @@ class UpdateDialog:
             if self.progress:
                 self.progress.value = p
 
-                # Update label inside bar
+                # Show percentage in status text
                 pct = int(p * 100)
-                if self.progress_label:
-                    self.progress_label.set_text(f"{pct}%")
+                if self.status:
+                    self.status.text = f"下載中... {pct}%"
 
         self.manager.download_and_install(progress_callback=update_progress)
