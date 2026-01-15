@@ -1,36 +1,36 @@
-# Lawyer Code Aliases (Connected Lawyers)
+# 代碼替換與別名 (Lawyer Code Aliases/Replacements)
 
-To support scenarios where a single lawyer code represents a group of lawyers or a specific distribution, users can define "Connected Lawyer Codes" (aliases).
+為了支援單一律師代碼代表一組律師或特定分配的情況，使用者可以定義「代碼替換規則」(前身為別名)。
 
-## Feature Description
+## 功能描述
 
-Users can define a mapping where a **Source Code** is automatically associated with a list of **Target Codes**.
+使用者可以定義一個映射，其中 **來源代碼 (Source Code)** 會自動關聯至 **目標代碼清單 (Target Codes)**。
 
--   **Source Code**: The partial or primary code (e.g., "KW").
--   **Target Codes**: The full list of codes to be used (e.g., "KW, JH, JL").
+-   **來源代碼 (Source Code)**: 原始或部分代碼 (例如 "KW")。
+-   **目標代碼 (Target Codes)**: 實際使用的完整代碼清單 (例如 "KW, JH, JL")。
 
-## Workflow Integration
+## 工作流程整合
 
-### Auto Fill Lawyer Codes
-When the "Auto Fill" workflow processes a row:
-1.  It identifies a potential code (e.g., finds "KW" in Summary, or user selects "KW").
-2.  The system checks if this code is a "Source Code" in the Alias database.
-3.  **If a match is found**: The system automatically replaces the found code with the defined **Target Codes** in the "Remark" column.
-4.  **If no match**: The single code is used as is.
+### 自動填寫律師代碼 (Auto Fill)
+當「自動填寫」流程處理一列資料時：
+1.  識別出潛在代碼 (例如在摘要中發現 "KW"，或使用者選擇 "KW")。
+2.  系統檢查此代碼是否為替換規則資料庫中的「來源代碼」。
+3.  **若發現匹配**: 系統會自動將發現的代碼替換為定義的 **目標代碼** 並填入「備註」欄位。
+4.  **若無匹配**: 則直接使用原始單一代碼。
 
-### Database Operations
-A new management interface is provided in the **Database Page** to:
--   **View** all defined aliases.
--   **Add** a new alias (Source -> Targets).
--   **Edit** existing aliases.
--   **Delete** aliases.
+### 資料庫操作
+在 **資料庫頁面 (Database Page)** 提供了一個新的管理介面：
+-   **檢視** 所有定義的替換規則。
+-   **新增** 新的替換規則 (來源 -> 目標)。
+-   **刪除** 替換規則。
 
-## Data Model
+## 資料模型
 
--   **Alias/Connected Code**:
-    -   `source_code` (Unique, Primary Key): e.g., "KW"
-    -   `target_codes` (Text): e.g., "KW, JH, JL" (stored as comma-separated string or related entities)
+-   **代碼替換 (Code Replacement)**:
+    -   `source_code` (唯一, 主鍵): 例如 "KW"
+    -   `target_codes` (文字): 例如 "KW, JH, JL" (儲存為逗號分隔字串)
 
-## Validation Rules
--   `source_code` must be unique.
--   `target_codes` cannot be empty.
+## 驗證規則
+-   `source_code` 必須唯一。
+-   `target_codes` 不得為空。
+-   建立規則時，若目標代碼不存在於律師資料庫，系統應提示建立。

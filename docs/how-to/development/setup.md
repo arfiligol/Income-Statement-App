@@ -1,36 +1,43 @@
-# Development Guide
+# 開發指南 (Development Guide)
 
-## Environment Setup
+## 環境設定
 
-This project uses `uv` for package management.
+本專案使用 `uv` 進行套件管理。
 
-### Installation
+### 安裝步驟
 ```bash
     git clone https://github.com/arfiligol/Income-Statement-App.git
     cd Income-Statement-App
     uv sync
 ```
 
-## Running the Application
+## 執行應用程式
 
-### Standard Run
+### 標準執行
 ```bash
 uv run start
 ```
 
-### Hot Reload (Recommended for Dev)
-NiceGUI supports hot reload via the `reload` flag. Enable it with:
+### Hot Reload (開發推薦)
+NiceGUI 支援透過 `reload` 旗標進行熱重載。使用以下指令啟用：
 
 ```bash
 NICEGUI_RELOAD=1 python main.py
 ```
 
-## Packaging
+## 打包發布 (Packaging)
 
-Project packaging is handled by **Briefcase**.
+專案打包由 **PyInstaller (nicegui-pack)** 處理，並整合了自動更新機制。
 
-1.  **Create**: `uv run briefcase create`
-2.  **Build**: `uv run briefcase build`
-3.  **Package**: `uv run briefcase package`
+1.  **一鍵打包 (Build & Zip)**：
+    ```bash
+    python build.py
+    ```
 
-Artifacts are output to the `build/` directory.
+腳本會自動執行以下步驟：
+- 清理 `build/` 與 `dist/` 目錄。
+- 使用 `nicegui-pack` 產生執行檔。
+- 將產出物壓縮為 `dist/macos.zip` 或 `dist/windows.zip`。
+
+2.  **發布 (Release)**：
+    將產生的 `.zip` 檔案上傳至 GitHub Releases。

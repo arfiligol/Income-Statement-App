@@ -4,9 +4,12 @@
 
 ## 功能特點
 
+## 功能特點
+
 -   **明細分帳 (Separate Ledger)**：讀取 Excel 檔案，根據備註欄位的律師代碼，自動計算並拆分借貸金額。
--   **自動填寫 (Auto Fill)**：根據摘要內容自動判斷並填入律師代碼，支援模糊比對與手動選擇。
--   **自動更新**：整合 GitHub Releases，應用程式啟動時會自動檢查並下載最新版本。
+-   **自動填寫 (Auto Fill)**：根據摘要內容自動判斷並填入律師代碼 (Step 2)。
+-   **代碼替換 (Code Replacement)**：支援設定代碼替換規則 (例如 `KW` -> `KW, HL`)，在 Step 2 自動展開多位律師。
+-   **自動更新**：整合 GitHub Releases，應用程式啟動時會自動檢查並引導更新 (Restart to Update)。
 
 ## 技術架構 (Technology Stack)
 
@@ -22,6 +25,7 @@
     -   [Pandas](https://pandas.pydata.org/): 高效能資料處理與分析。
     -   [OpenPyXL](https://openpyxl.readthedocs.io/): Excel 檔案讀寫與格式化。
 -   **Database**: SQLite (透過 SQLAlchemy ORM 管理)。
+
 ## 執行應用程式
 
 ```bash
@@ -62,24 +66,21 @@ NICEGUI_RELOAD=1 python main.py
 
 ## 打包發布 (Packaging)
 
-本專案採用 **Briefcase** 進行跨平台打包。
+本專案採用 **PyInstaller** (透過 `nicegui-pack`) 進行跨平台打包，並整合自動更新機制。
 
-1.  **建立專案骨架 (Create)**：
+1.  **一鍵打包 (Build & Zip)**：
+    直接執行專案根目錄下的 `build.py` 腳本：
     ```bash
-    uv run briefcase create
+    python build.py
     ```
 
-2.  **建置應用程式 (Build)**：
-    ```bash
-    uv run briefcase build
-    ```
+    此腳本會自動完成以下動作：
+    - 清除舊的建置檔案 (`build/`, `dist/`)。
+    - 使用 `nicegui-pack` 產生平台對應的執行檔 (`.app` 或 `.exe`)。
+    - 將產出物壓縮為 `macos.zip` 或 `windows.zip`，位於 `dist/` 目錄下。
 
-3.  **打包安裝檔 (Package)**：
-    ```bash
-    uv run briefcase package
-    ```
-
-打包完成後的安裝檔或執行檔將位於 `build/` 目錄中對應的平台資料夾內（例如 `build/Income-Statement-App/windows/app` 或 `build/Income-Statement-App/macos/app`）。
+2.  **發布更新 (Release)**：
+    將 `dist/` 目錄下的 zip 檔案上傳至 GitHub Releases，系統即可透過自動更新機制下載安裝。
 
 ## 授權 (License)
 

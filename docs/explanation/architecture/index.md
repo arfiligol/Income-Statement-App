@@ -1,81 +1,81 @@
-# System Architecture
+# 系統架構 (System Architecture)
 
-## Overview
+## 概述
 
-The **Income Statement App** adopts a **Layered Clean Architecture** combined with **NiceGUI** for the presentation layer. This design ensures separation of concerns, testability, and ease of maintenance.
+**Income Statement App** 採用 **分層式整潔架構 (Layered Clean Architecture)** 並結合 **NiceGUI** 作為表現層框架。此設計確保了關注點分離、可測試性以及易於維護。
 
-## Key References
+## 關鍵參考
 
 - [NiceGUI MVVM + Clean Architecture](nicegui-mvvm.md)
-- For SPA navigation without full page rebuilds, use `ui.sub_pages` to avoid flicker.
+- 為避免全頁重整導致的閃爍，SPA 導航應使用 tab panels 或 dynamic content 替換。
 
-## Layers
+## 分層設計 (Layers)
 
-The application is divided into the following layers:
+本應用程式分為以下層次：
 
-### 1. Presentation Layer (UI)
-*   **Framework**: [NiceGUI](https://nicegui.io/)
-*   **Responsibility**: Rendering UI code, handling user input, and displaying state.
-*   **Pattern**: **MVVM (ViewModel + ViewState + Effects)**.
-    *   **Views**: Pages/components under `app/ui/pages` and `app/ui/components`.
-    *   **ViewModels**: Encapsulate intents and workflow orchestration per page.
-    *   **State**: One ViewState per page/feature; view re-renders from state only.
-    *   **Effects**: One-time UI effects (toast/dialog/navigation).
+### 1. 表現層 (Presentation Layer / UI)
+*   **框架**: [NiceGUI](https://nicegui.io/)
+*   **職責**: 渲染 UI 程式碼、處理使用者輸入、顯示狀態。
+*   **模式**: **MVVM (ViewModel + ViewState + Effects)**。
+    *   **Views**: 位於 `app/ui/pages` 與 `app/ui/components` 下的頁面與元件。
+    *   **ViewModels**: 封裝每個頁面的意圖 (Intent) 與流程編排。
+    *   **State**: 每個頁面/功能對應一個 ViewState；View 僅根據 State 進行渲染。
+    *   **Effects**: 處理一次性的 UI 效果 (如 Toast、Dialog、導航)。
 
-### 2. Domain Layer
-*   **Responsibility**: Defining core business entities and data structures.
-*   **Components**:
-    *   **DTOs (Data Transfer Objects)**: Pure data classes used to pass data between layers (e.g., `LawyerDTO`, `AliasDTO`, `SeparateLedgerResultDTO`).
-    *   **Interfaces**: Abstract protocols defining contracts for dependencies (e.g., `UserInteractionProvider`).
+### 2. 領域層 (Domain Layer)
+*   **職責**: 定義核心業務實體與資料結構。
+*   **組件**:
+    *   **DTOs (Data Transfer Objects)**: 用於層與層之間傳遞資料的純資料類別 (例如 `LawyerDTO`、`SeparateLedgerResultDTO`)。
+    *   **Interfaces (Ports)**: 定義與外部依賴溝通的抽象介面 (例如 `UserInteractionProvider`, `LawyerRepository`)。
 
-### 3. Application Layer
-*   **Responsibility**: Orchestrating business logic and workflows.
-*   **Components**:
-    *   **Use Cases**: Orchestrate "Import Excel", "Separate Ledger", "Auto Fill", and "Export".
-    *   **Ports**: Interfaces for repositories/gateways used by Use Cases.
-*   **Characteristics**: Application code depends on `domain` and ports only.
+### 3. 應用層 (Application Layer)
+*   **職責**: 編排業務邏輯與工作流程。
+*   **組件**:
+    *   **Use Cases**: 編排「匯入 Excel」、「明細分帳」、「自動填寫」與「匯出」等流程 (例如 `AutoFillUseCase`)。
+    *   **Ports**: Use Cases 使用的 Repository 或 Gateway 介面。
+*   **特性**: 應用層程式碼僅依賴 `domain` 與 `ports`。
 
-### 4. Infrastructure Layer
-*   **Responsibility**: Abstraction of external systems (Database, Files, OS dialogs).
-*   **Components**:
+### 4. 基礎設施層 (Infrastructure Layer)
+*   **職責**: 外部系統的實作 (資料庫、檔案系統、視窗控制)。
+*   **組件**:
     *   **Repositories**:
-        *   `AliasRepository`: CRUD for Alias data (SQLite).
-        *   `LawyerRepository`: CRUD for Lawyer data (SQLite).
-        *   `ExcelRepository`: Low-level wrapper for `pandas` and `openpyxl` file I/O.
+        *   `CodeReplacementRepository`: 管理代碼替換規則 (SQLite)。
+        *   `LawyerRepository`: 管理律師資料 (SQLite)。
+        *   `ExcelRepository`: 基於 `pandas` 與 `openpyxl` 的檔案封裝。
     *   **Gateways**:
-        *   File picker for web/native environments.
+        *   檔案選擇器 (Web/Native)。
     *   **Runtime**:
-        *   Task runners for background jobs.
+        *   背景任務執行器。
 
-## Diagram
+## 架構圖 (Diagram)
 
 ```mermaid
 graph TD
-    subgraph UI [Presentation Layer]
+    subgraph UI [表現層 Presentation Layer]
         View[NiceGUI Views] <--> State[ViewState]
         State --> UseCase
     end
 
-    subgraph Domain [Domain Layer]
+    subgraph Domain [領域層 Domain Layer]
         DTOs
         Interface[Interfaces]
     end
 
-    subgraph Logic [Application Layer]
+    subgraph Logic [應用層 Application Layer]
         UseCase[Use Cases] --> Repo[Repositories]
         UseCase --> Interface
     end
 
-    subgraph Data [Data Layer]
+    subgraph Data [資料層 Data Layer]
         Repo --> DB[(SQLite)]
         Repo --> Excel[(Files)]
     end
 ```
 
-## Technology Stack
+## 技術堆疊 (Technology Stack)
 
-*   **Language**: Python 3.13+
-*   **UI**: NiceGUI
-*   **Database**: SQLite + SQLAlchemy
-*   **Data Processing**: Pandas, OpenPyXL
-*   **Distribution**: Briefcase
+*   **語言**: Python 3.10+
+*   **UI 框架**: NiceGUI (基於 Quasar/Vue)
+*   **資料庫**: SQLite + SQLAlchemy
+*   **資料處理**: Pandas, OpenPyXL
+*   **打包發布**: PyInstaller (nicegui-pack)

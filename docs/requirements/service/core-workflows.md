@@ -1,27 +1,28 @@
-# Core Workflows
+# 核心工作流程 (Core Workflows)
 
-The application primarily supports two accounting workflows for law firms.
+本應用程式主要支援律師事務所的兩大帳務工作流程。
 
-## 1. Auto Fill Lawyer Codes (摘要抓律師代碼)
-**Goal**: Populate the "Remark" (備註) column in the ledger based on the text in the "Summary" (摘要) column.
+## 1. 自動填寫律師代碼 (Auto Fill Lawyer Codes)
+**目標**: 根據「摘要」欄位的文字內容，自動填入「備註」(Remark) 欄位的律師代碼。
 
--   **Input**: An Excel file with accounting entries.
--   **Process**:
-    1.  Read the file.
-    2.  Scan "Summary" column for known lawyer codes (e.g., "HL", "JH").
-    3.  If found, write the code into "Remark".
-    4.  If not found, prompt the user to manually select or input the code (via Dialog).
-        -   User can "Confirm", "Skip Single", or "Skip All" (User Abort Logic).
--   **Output**: The same Excel file, modified in-place.
+-   **輸入**: 含有帳務明細的 Excel 檔案。
+-   **流程**:
+    1.  讀取檔案。
+    2.  掃描「摘要」欄位是否包含已知的律師代碼 (例如 "HL", "JH")。
+    3.  若發現，將代碼填入「備註」欄位。
+        -   **替換邏輯**: 若代碼有設定「替換規則」(例如 KW -> KW, HL)，則自動展開。
+    4.  若未發現，提示使用者手動選擇或輸入代碼 (透過對話框)。
+        -   使用者可選擇「確認」、「略過單筆」或「略過全部」 (中斷邏輯)。
+-   **輸出**: 修改後的 Excel 檔案 (In-place)。
 
-## 2. Separate Ledger (律師收入明細)
-**Goal**: Split shared revenue/expenses among lawyers based on the codes in the "Remark" column.
+## 2. 律師收入明細分帳 (Separate Ledger)
+**目標**:根據「備註」欄位的律師代碼，將共同收入/支出拆分給各位律師。
 
--   **Input**: An Excel file (usually processed by Auto Fill first).
--   **Target Sheet**: Looks for "明細分類帳".
--   **Process**:
-    1.  Read each row.
-    2.  Check "Remark" column for multiple lawyer codes (e.g., "HL JH").
-    3.  Divide the Debit/Credit amounts equally by the number of lawyers.
-    4.  Create new rows in the output for each lawyer with the split amount.
--   **Output**: A new Excel file containing the separated entries.
+-   **輸入**: Excel 檔案 (通常先經由自動填寫流程處理過)。
+-   **目標工作表**: 尋找名稱為「明細分類帳」的工作表。
+-   **流程**:
+    1.  讀取每一列。
+    2.  檢查「備註」欄位是否包含多個律師代碼 (例如 "HL JH")。
+    3.  將借方/貸方金額平均除以律師人數。
+    4.  在輸出結果中為每位律師建立一列，填入拆分後的金額。
+-   **輸出**: 包含已拆分明細的新 Excel 檔案。

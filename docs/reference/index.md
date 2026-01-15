@@ -1,5 +1,5 @@
-# Reference
+# 參考文件 (Reference)
 
-All AI agents must read the guardrails before making changes.
+所有 AI Agent 在進行變更前必須閱讀開發規範。
 
-- [NiceGUI Guardrails](guardrails.md)
+- [NiceGUI 開發規範 (Guardrails)](guardrails.md)

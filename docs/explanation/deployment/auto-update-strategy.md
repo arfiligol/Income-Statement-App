@@ -1,102 +1,102 @@
-# Deployment & Auto-Update Strategy
+# 部署與自動更新策略 (Deployment & Auto-Update Strategy)
 
-## Overview
+## 概述
 
-This document describes the **"Restart to Update"** strategy for the Income Statement App.
-The goal is to provide a seamless update experience where the user clicks "Update", waits for the download, and the application automatically restarts into the new version.
+本文件說明 Income Statement App 採用的 **「重啟更新 (Restart to Update)」** 策略。
+目標是提供無縫的更新體驗：使用者點擊「更新」按鈕，等待下載完成，應用程式自動重啟並進入新版本。
 
-## Architecture
+## 架構
 
-We utilize **PyInstaller** for packaging and a custom **Script Swap** mechanism for updates.
+我們使用 **PyInstaller** 進行打包，並配合自定義的 **Script Swap** 機制來執行更新。
 
-### 1. Packaging: PyInstaller (`nicegui-pack`)
+### 1. 打包 (Packaging): PyInstaller (`nicegui-pack`)
 
-We use `nicegui-pack` (which wraps PyInstaller) to create the distribution.
-*   **Format**: `onedir` (Directory-based) is recommended over `onefile` for faster startup and easier updates.
-*   **Output**:
-    *   **Windows**: A folder containing `app.exe` and `_internal/`.
-    *   **macOS**: A `.app` bundle (Application Bundle).
+我們使用 `nicegui-pack` (封裝了 PyInstaller) 進行發布建置。
 
-### 2. Update Workflow
+*   **格式**: 推薦使用 `onedir` (目錄模式)，啟動速度比 `onefile` 快，且更易於進行局部更新。
+*   **產出物**:
+    *   **Windows**: 包含 `app.exe` 與 `_internal/` 的資料夾。
+    *   **macOS**: 一個 `.app` bundle (應用程式套件)。
 
-The update process consists of 4 stages: **Check**, **Download**, **Swap**, **Restart**.
+### 2. 更新流程 (Update Workflow)
 
-#### Stage 1: Check (Business Logic)
-*   **Trigger**: App launch or User manual click.
-*   **Action**: Call GitHub API `GET /repos/{owner}/{repo}/releases/latest`.
-*   **Comparison**: Compare `tag_name` with local `app.common.version.__version__`.
-*   **UI**: Show "New Version Available" badge.
+更新流程包含四個階段：**檢查 (Check)**、**下載 (Download)**、**置換 (Swap)**、**重啟 (Restart)**。
 
-#### Stage 2: Download (Infrastructure)
-*   **Action**: Download the platform-specific asset (`windows.zip` or `macos.zip`) from GitHub Releases.
-*   **Location**: Download to a temporary directory (e.g., user's `Temp` or `Downloads/IncomeStatement_Update`).
-*   **Extraction**: Extract the ZIP file to a staging folder (e.g., `.../Staging/NewVersion`).
+#### 階段 1: 檢查 (Check - Business Logic)
+*   **觸發**: 應用程式啟動或使用者手動點擊。
+*   **動作**: 呼叫 GitHub API `GET /repos/{owner}/{repo}/releases/latest`。
+*   **比對**: 將 `tag_name` 與本地 `app.common.version.__version__` 進行比對。
+*   **UI**: 顯示「發現新版本」標示或按鈕。
 
-#### Stage 3: Swap (The "Magic" Script)
-This is the most critical part, handling OS-specific constraints (File Locking on Windows).
+#### 階段 2: 下載 (Download - Infrastructure)
+*   **動作**: 從 GitHub Releases 下載對應平台的產物 (`windows.zip` 或 `macos.zip`)。
+*   **位置**: 下載至暫存目錄 (例如使用者的 `Temp` 或 `Downloads/IncomeStatement_Update`)。
+*   **解壓**: 將 ZIP 解壓至 Staging 資料夾 (例如 `.../Staging/NewVersion`)。
 
-1.  **Generate Script**: The running App generates a temporary Shell Script (`.sh` for macOS) or Batch Script (`.bat` for Windows).
-2.  **Execute & Exit**:
-    *   The App spawns the script as a **separate process** (`subprocess.Popen`).
-    *   The App **immediately terminates itself** (`sys.exit()`) to release file locks.
+#### 階段 3: 置換 (Swap - The "Magic" Script)
+這是最關鍵的部分，用來處理作業系統特定的限制 (Windows 的檔案鎖定)。
 
-**The Script's Job:**
-1.  **Wait**: Sleep for 1-2 seconds to ensure the main App process has fully terminated.
-2.  **Backup**: Move the current installation folder to a backup path (e.g., `OldVersion_Bak`).
-3.  **Move**: Move the extracted `NewVersion` folder to the original installation path.
-4.  **Cleanup**: Delete the `OldVersion_Bak` (optional, or keep for rollback).
-5.  **Restart**: Lauch the new executable.
+1.  **產生腳本**: 執行中的 App 會產生一個暫時的 Shell Script (`.sh` for macOS) 或 Batch Script (`.bat` for Windows)。
+2.  **執行與退出**:
+    *   App 會將腳本作為 **獨立進程 (Separate Process)** 啟動 (`subprocess.Popen`)。
+    *   App **立即自行終止** (`sys.exit()`) 以釋放檔案鎖定。
 
-#### Stage 4: Restart
-The script launches the new executable, and the user sees the updated App open up.
+**腳本的工作 (The Script's Job):**
+1.  **等待**: 等待 1-2 秒，確保主程式進程已完全結束。
+2.  **備份**: 將目前的安裝目錄移動到備份路徑 (例如 `OldVersion_Bak`)。
+3.  **移動**: 將解壓好的 `NewVersion` 資料夾移動到原始安裝路徑。
+4.  **清理**: 刪除 `OldVersion_Bak` (可選)。
+5.  **重啟**: 啟動新的執行檔。
+
+#### 階段 4: 重啟 (Restart)
+腳本啟動新的執行檔，使用者看到更新後的 App 開啟。
 
 ---
 
-## Operating System Specifics & Pitfalls
+## 作業系統特性與陷阱
 
-### 🪟 Windows (Crucial)
+### 🪟 Windows (關鍵)
 
-**Challenge 1: File Locking**
-*   **Issue**: You cannot delete or overwrite `app.exe` or DLLs while the process is running.
-*   **Solution**: The "Script Swap" approach solves this. The script runs *outside* the App process.
-*   **Pitfall**: If the App takes too long to close, the script might fail to move files.
-*   **Mitigation**: The script includes a retry loop (try move, if permission denied, sleep 1s, retry).
+**挑戰 1: 檔案鎖定 (File Locking)**
+*   **問題**: 當進程執行中時，無法刪除或覆蓋 `app.exe` 或 DLL 檔。
+*   **解法**: "Script Swap" 方法解決了此問題。腳本在 App 進程 **外部** 執行。
+*   **陷阱**: 如果 App 關閉太慢，腳本可能會移動檔案失敗。
+*   **緩解**: 腳本內建重試迴圈 (Retry Loop)。
 
-**Challenge 2: UAC / Permissions**
-*   **Issue**: If installed in `C:\Program Files`, writing requires Administrator privileges.
-*   **Solution**: Recommended to install/run as a **User-space Application** (e.g., Portable Mode or strictly in `%LOCALAPPDATA%`).
-*   **Policy**: We assume the App is deployed in a User-writable location (Desktop, Portable folder, etc.).
+**挑戰 2: UAC / 權限**
+*   **問題**: 如果安裝在 `C:\Program Files`，寫入需要管理員權限。
+*   **政策**: 我們假設 App 部署在使用者可寫入的位置 (桌面、Portable 資料夾、`%LOCALAPPDATA%`)。
 
 ### 🍎 macOS
 
-**Challenge 1: Gatekeeper & Quarantine**
-*   **Issue**: Downloaded executable/script gets `com.apple.quarantine` attribute. Running it triggers "App is damaged" or "Unidentified Developer".
-*   **Solution (Robust)**: Proper Code Signing & Notarization (Requires Apple Developer Account).
-*   **Solution (Workaround)**: Run `xattr -cr /path/to/extracted/App.app` in the updater script to clear quarantine flags before launching.
+**挑戰 1: Gatekeeper & Quarantine**
+*   **問題**: 下載的執行檔/腳本會被標記 `com.apple.quarantine` 屬性。執行時會觸發「應用程式已損毀 (App is damaged)」或「未識別的開發者」警告。
+*   **解法 (Robust)**: 正確的 Code Signing 與 Notarization (需要 Apple Developer Account)。
+*   **解法 (Workaround)**: 在更新腳本中執行 `xattr -cr /path/to/extracted/App.app` 來清除 Quarantine 標記。
 
-**Challenge 2: App Bundles**
-*   **Issue**: macOS Apps are folders (`.app`).
-*   **Solution**: The script must verify it is moving the entire `.app` bundle, not just the inner executable.
-
----
-
-## Implementation Plan
-
-### Phase 1: Packaging Setup
-1.  Create `build.py` to automate PyInstaller builds for both platforms.
-2.  Ensure `version.py` is included and readable.
-
-### Phase 2: Update Logic (Backend)
-1.  **UpdateManager**: `check_update()`, `download_update()`.
-2.  **ScriptGenerator**: `generate_windows_updater()`, `generate_macos_updater()`.
-
-### Phase 3: UI Integration
-1.  Add `Version` display in Sidebar.
-2.  Add `UpdateDialog` with progress bar.
+**挑戰 2: App Bundles**
+*   **問題**: macOS App 本質上是資料夾 (`.app`)。
+*   **解法**: 腳本必須確認移動的是整個 `.app` bundle，而不只是內部的執行檔。
 
 ---
 
-## Example Updater Scripts
+## 實作變更 (Implementation Plan)
+
+### 第一階段: 打包設定
+1.  建立 `build.py` 自動化雙平台的 PyInstaller 建置。
+2.  確保 `version.py` 存在且可讀取。
+
+### 第二階段: 更新邏輯 (Backend)
+1.  **UpdateManager**: `check_update()`, `download_update()`。
+2.  **ScriptGenerator**: `generate_windows_updater()`, `generate_macos_updater()`。
+
+### 第三階段: UI 整合
+1.  在側邊欄顯示 `Version`。
+2.  加入 `UpdateDialog` 顯示進度條。
+
+---
+
+## 更新腳本範例
 
 ### Windows (`updater.bat`)
 ```batch

@@ -1,116 +1,116 @@
-# NiceGUI App Architecture (MVVM + Clean + DTO Discipline)
+# NiceGUI 應用程式架構 (MVVM + Clean + DTO 規範)
 
-This document defines the non-negotiable architecture for the NiceGUI app.
+這份文件定義了本 NiceGUI 應用程式不可妥協的架構原則。
 
-## Goal
+## 目標
 
-Build a maintainable NiceGUI application (web + optional native desktop via `ui.run(native=True)`) that:
+建立一個可維護的 NiceGUI 應用程式（Web + 可選的 Native Desktop），並達成以下目標：
 
-- uses Material Icons + TailwindCSS for UI styling
-- leverages Python for strong data analysis (pandas/numpy/etc.)
-- supports system-native capabilities (e.g., file picker / file browser) and handles Excel files
-- avoids callback spaghetti despite NiceGUI's event-driven UI lifecycle
+- 使用 Material Icons + TailwindCSS 進行現代化 UI 設計。
+- 利用 Python 進行強大的資料分析 (pandas/numpy 等)。
+- 支援系統原生功能（如檔案選擇器）並處理 Excel 檔案。
+- 即使在 NiceGUI 的事件驅動生命週期中，也要避免 Callback Spaghetti（回呼地獄）。
 
-## Core Principles (Non-Negotiable)
+## 核心原則 (不可妥協)
 
-1. UI callbacks must never contain business workflows.
-2. Cross-layer data exchange must use DTOs only.
-3. Web vs native differences must be isolated in infrastructure gateways.
+1. **UI Callbacks 不得包含業務邏輯**：僅負責觸發 ViewModels。
+2. **跨層資料交換必須僅使用 DTOs**：禁止直接傳遞 ORM 物件或 DataFrame。
+3. **Web 與 Native 的差異必須隔離在 Infrastructure Gateways 中**。
 
-## Recommended High-Level Architecture
+## 建議的高層架構
 
-Combine:
+結合以下模式：
 
-- Clean-ish layers: `domain / application / infrastructure`
-- MVVM for NiceGUI: `ui/pages/components + ui/viewmodels + ViewState/Intent/Effect`
-- Optional `api/` only if external HTTP endpoints are needed.
+- 類整潔架構層次：`domain / application / infrastructure`
+- NiceGUI 的 MVVM 模式：`ui/pages/components + ui/viewmodels + ViewState/Intent/Effect`
+- 可選的 `api/`（僅在需要外部 HTTP 端點時）。
 
-## Layer Responsibilities
+## 分層職責
 
-### domain/
+### domain/ (領域層)
 
-- Pure rules and structures: DTOs, entities, validators, transformations, enums.
-- No I/O, no pandas, no NiceGUI, no file system calls.
+- 純粹的規則與結構：DTOs、Entities、Validators、Transformations、Enums。
+- 禁止 I/O、禁止 pandas、禁止 NiceGUI、禁止檔案系統呼叫。
 
-### application/
+### application/ (應用層)
 
-- Use cases for workflow orchestration (e.g., "Import Excel -> validate -> map -> compute -> export").
-- Depends only on `domain` and `application/ports` (interfaces).
-- No NiceGUI imports; avoid direct pandas/openpyxl (delegate to infra).
+- 負責工作流程編排的使用案例 (Use Cases)（例如：「匯入 Excel -> 驗證 -> 映射 -> 計算 -> 匯出」）。
+- 僅依賴 `domain` 與 `application/ports` (介面)。
+- 禁止匯入 NiceGUI；避免直接操作 pandas/openpyxl（應委派給 infra 層）。
 
-### infrastructure/
+### infrastructure/ (基礎設施層)
 
-- External world: Excel I/O (pandas/openpyxl), file system, DB, web/native gateways.
-- Implements interfaces defined in `application/ports`.
-- Converts external formats into domain DTOs and returns DTOs.
+- 外部世界：Excel I/O (pandas/openpyxl)、檔案系統、資料庫、Web/Native Gateways。
+- 實作 `application/ports` 中定義的介面。
+- 將外部格式轉換為 Domain DTOs 並回傳 DTOs。
 
-### ui/
+### ui/ (表現層)
 
-- Pages/components/layout + routing + ViewModels.
-- Rendering, event wiring, state binding, and Effects.
-- No heavy logic, no I/O, no pandas.
+- Pages/Components/Layout + Routing + ViewModels。
+- 負責渲染、事件綁定、狀態綁定與 Effects。
+- 禁止繁重的邏輯、禁止 I/O、禁止 pandas。
 
-## MVVM Lifecycle Pattern for NiceGUI
+## NiceGUI 的 MVVM 生命週期模式
 
-### Key Constructs
+### 關鍵構造
 
-- ViewState (single source of truth): one state object per page/feature.
-- Intent/Command: all UI events become a finite set of intents.
-- Effect channel: one-time side effects should not be stored in ViewState.
+- **ViewState (單一真理來源)**：每個頁面/功能一個狀態物件。
+- **Intent/Command**：所有的 UI 事件都轉化為有限的 Intent 集合。
+- **Effect Channel**：一次性的副作用（如通知、跳轉）不應儲存在 ViewState 中。
 
-### Lifecycle Flow
+### 生命週期流程
 
-1. View emits intent (or calls VM method).
-2. ViewModel handles intent:
-   - updates loading state
-   - calls UseCase(s)
-   - on success: updates state with DTO result
-   - on failure: sets error state + emits Effect
-3. View re-renders strictly from ViewState; side effects executed via Effects.
+1. **View** 發出 Intent（或呼叫 VM 方法）。
+2. **ViewModel** 處理 Intent：
+   - 更新 Loading 狀態。
+   - 呼叫 UseCase(s)。
+   - 成功時：更新 State (填入 DTO 結果)。
+   - 失敗時：設定 Error State + 發出 Effect。
+3. **View** 嚴格根據 ViewState 重新渲染；副作用透過 Effects 執行。
 
-## Routing / Modularity in NiceGUI
+## 路由與模組化
 
-- `ui/routers/*` for route registration.
-- `ui/pages/*` for page composition.
-- `ui/components/*` for reusable UI elements.
+- `ui/routers/*`：負責路由註冊。
+- `ui/pages/*`：負責頁面組裝。
+- `ui/components/*`：可重用的 UI 元素。
 
-## Web + Native File Handling Strategy
+## Web + Native 檔案處理策略
 
-Define a unified `FileSource` DTO:
+定義統一的 `FileSource` DTO：
 
-- `LocalPathSource(path)` for native file dialog
-- `UploadedTempSource(temp_path_or_id)` for web upload
-- optional `BytesSource(bytes, filename)` if needed
+- `LocalPathSource(path)`：用於原生檔案對話框。
+- `UploadedTempSource(temp_path_or_id)`：用於 Web 上傳。
+- (可選) `BytesSource(bytes, filename)`：若有需要處理純位元組。
 
-UI always works with `FileSource`. Infrastructure resolves it into readable input.
+UI 總是操作 `FileSource`，由 Infrastructure 解析為可讀取的輸入。
 
-### Implementation Notes (NiceGUI + Native)
+### 實作筆記 (NiceGUI + Native)
 
-- The file picker UI is in `app/ui/components/widgets/file_source_picker.py`.
-- Web mode uses `ui.upload` and persists to a temp file before creating `FileSource`.
-- Native mode uses `app.native.main_window.create_file_dialog` and returns `FileSource` with the selected path.
-- Use `webview.FileDialog.OPEN` (not `webview.OPEN_DIALOG`) to avoid pickling errors in native mode.
-- When `on_file_selected` is async, schedule it with `asyncio.create_task` to avoid un-awaited coroutine warnings.
+- 檔案選擇器 UI 位於 `app/ui/components/widgets/file_source_picker.py`。
+- Web 模式使用 `ui.upload` 並在建立 `FileSource` 前將檔案存至暫存區。
+- Native 模式使用 `app.native.main_window.create_file_dialog` 並回傳包含路徑的 `FileSource`。
+- 在 Native 模式下應使用 `webview.FileDialog.OPEN` 以避免 pickling 錯誤。
+- 若 `on_file_selected` 是非同步的，請使用 `asyncio.create_task` 排程，避免未等待的 Coroutine 警告。
 
-## Background Task Strategy
+## 背景任務策略
 
-Excel import and heavy compute must run off the UI thread.
+Excel 匯入與繁重計算必須在 UI 執行緒之外執行。
 
-- Provide a centralized `TaskRunner` (thread/process pool + async wrapper).
-- ViewModel sets loading state immediately, awaits task completion, updates state/effects.
+- 提供中心化的 `TaskRunner` (Thread/Process Pool + Async Wrapper)。
+- ViewModel 應立即設定 Loading 狀態，等待任務完成，然後更新 State/Effects。
 
-## Styling Strategy (Tailwind + Material Icons)
+## 樣式策略 (Tailwind + Material Icons)
 
-- Use Tailwind for layout (spacing/grid/typography/responsive).
-- Keep component visuals aligned with NiceGUI/Quasar defaults; override minimally.
-- Centralize icon names/mapping to avoid string scatter across the UI.
-- Put minimal overrides in `app/ui/styles/` and apply a token-first theme (see style guide).
+- 使用 **Tailwind** 處理佈局 (Spacing/Grid/Typography/Responsive)。
+- 保持元件視覺與 NiceGUI/Quasar 預設一致；最小化覆寫。
+- 集中管理 Icon 名稱/映射，避免字串散落在 UI 各處。
+- 將最小化的覆寫放在 `app/ui/styles/` 並應用 Token-First 主題 (詳見樣式指南)。
 
-## Folder Structure (Recommended)
+## 建議目錄結構
 
 ```text
 your_app/
-  main.py  # composition root: DI wiring, router registration, ui.run()
+  main.py  # Composition Root: DI wiring, router registration, ui.run()
 
   app/
     config/
@@ -167,11 +167,11 @@ your_app/
     ui_smoke/
 ```
 
-## Review Checklist
+## 審查清單 (Review Checklist)
 
-- UI callbacks only emit intents / call VM methods (no workflow logic).
-- No DataFrame/openpyxl/ORM objects leak above infrastructure.
-- UseCases depend only on ports/interfaces, not infra implementations.
-- Web/native differences exist only in infrastructure gateways.
-- One ViewState per page is the single truth; no hidden UI state.
-- Side effects go through Effects, not stored as persistent state.
+- [ ] UI Callbacks 僅發出 Intent / 呼叫 VM 方法 (無工作流程邏輯)。
+- [ ] 沒有 DataFrame/openpyxl/ORM 物件洩漏到 Infrastructure 之上。
+- [ ] UseCases 僅依賴 Ports/Interfaces，不依賴 Infra 的實作。
+- [ ] Web/Native 的差異僅存在於 Infrastructure Gateways 中。
+- [ ] 每個頁面只有一個 ViewState 作為單一真理來源；沒有隱藏的 UI 狀態。
+- [ ] 副作用走 Effects 通道，不存於持久化狀態中。
