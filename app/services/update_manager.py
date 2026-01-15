@@ -196,7 +196,7 @@ start "" "{current}\IncomeStatement.exe"
             f.write(script_content)
 
         subprocess.Popen([str(script_path)], shell=True)
-        sys.exit(0)
+        os._exit(0)
 
     def _run_macos_update(self, current: Path, new: Path, temp_dir: Path):
         script_path = temp_dir / "updater.sh"
@@ -226,4 +226,4 @@ open "$CURRENT"
             f.write(script_content)
 
         subprocess.Popen(["/bin/bash", str(script_path)])
-        sys.exit(0)
+        os._exit(0)

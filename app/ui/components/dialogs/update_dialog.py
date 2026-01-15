@@ -52,15 +52,13 @@ class UpdateDialog:
             ui.notify(f"Update Failed: {ex}", type="negative")
             e.sender.enable()
 
-    def _run_download(self):
         def update_progress(p):
-            # This runs in thread, need to schedule UI update
-            # But nicegui mostly not thread safe for direct UI updates unless simple?
-            # It's better not to access simple props across threads if strict.
-            # But let's trying ignoring for now or just set variable.
-            # Actually, blocking calls inside executor is fine.
-            # But validation: download_and_install exits the app!
-            # So if successful, app dies.
-            pass
+            # Safe to update NiceGUI element from thread?
+            # Ideally use ui.run_javascript or app.call_soon/loop.call_soon_threadsafe
+            # But specific element update might work if no layout change.
+            # Safest is to not touch UI directly from thread.
+            # But let's try direct update, if it fails we wrap.
+            if self.progress:
+                self.progress.value = p
 
-        self.manager.download_and_install()
+        self.manager.download_and_install(progress_callback=update_progress)
