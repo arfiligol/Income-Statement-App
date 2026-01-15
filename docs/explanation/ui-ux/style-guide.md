@@ -80,12 +80,25 @@ Tailwind colors must reference CSS variables:
   - Cards/panels: `bg-surface border-border`
 - Avoid setting Quasar color props with raw names unless they map to tokens.
 
+## Animations & Transitions
+
+### Tab Panels
+- **Default Behavior**: Quasar defaults to `slide-right`/`slide-left`.
+- **Policy**: Override to **Fade** to avoid motion sickness and provide a cleaner transition.
+- **Implementation**: Apply `.props("animated transition-prev=fade transition-next=fade")` to `ui.tab_panels`.
+
 ## Component Wrapper Convention
 
 Every page uses a shared shell wrapper:
 
 - `app/ui/components/layout/shell.py` applies `bg-bg text-fg min-h-screen`.
 - All pages render inside Shell so background/text are consistent.
+
+## Adaptive Layout Rules
+
+- Cards should be `w-full` and rely on the parent container's padding to define the page edge.
+- Use parent padding (e.g., `px-6 py-8`) for horizontal spacing; avoid per-card margins for page edges.
+- Use container `gap-*` or `mb-*` sparingly for vertical rhythm between cards.
 
 ## Dark/Light Toggle Contract
 

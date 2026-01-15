@@ -8,4 +8,3 @@ class Lawyer:
     """
 
     code: str
-    name: str = ""  # Optional name, defaults to empty if not set

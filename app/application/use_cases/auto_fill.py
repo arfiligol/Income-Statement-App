@@ -2,7 +2,7 @@ from typing import Any
 
 from app.application.ports.gateways import UserInteractionGateway
 from app.application.ports.repositories import (
-    AliasRepository,
+    CodeReplacementRepository,
     ExcelRepository,
     LawyerRepository,
 )
@@ -22,13 +22,14 @@ class AutoFillUseCase:
         self,
         excel_repo: ExcelRepository,
         lawyer_repo: LawyerRepository,
-        alias_repo: AliasRepository,
+        replacement_repo: CodeReplacementRepository,
         interaction: UserInteractionGateway,
     ):
         self._excel_repo = excel_repo
         self._lawyer_repo = lawyer_repo
-        self._alias_repo = alias_repo
+        self._replacement_repo = replacement_repo
         self._interaction = interaction
+        self._replacement_map: dict[str, list[str]] = {}
 
     async def execute(self, source: FileSource) -> Result[AutoFillResult, Exception]:
         try:
@@ -48,22 +49,26 @@ class AutoFillUseCase:
             known_lawyers = [l.code for l in self._lawyer_repo.get_all()]
             known_codes_set = set(known_lawyers)
 
+            # Load Replacements
+            replacements = self._replacement_repo.get_all()
+            self._replacement_map = {
+                r.source_code: [
+                    t.strip()
+                    for t in r.target_codes.replace("，", ",").split(",")
+                    if t.strip()
+                ]
+                for r in replacements
+            }
+
             updated_count = 0
             updates: list[tuple[int, int, str]] = []  # (row, col, value)
             skip_manual = False
 
             # 4. Iterate Rows
             for offset, row in enumerate(data_rows, start=1):
-                excel_row_num = (
-                    header_index + offset + 1
-                )  # 1-based index (header_index is 0-based)
-                # Wait, if header is at 0, data starts at 1. Excel row 1 is header+1? No.
-                # If header is row 0 (Excel row 1), data is row 1 (Excel row 2).
-                # offset start=1 implies +1.
-                # Let's say header_index=0. offset=1. excel_row=2. Correct if 1-based.
+                excel_row_num = header_index + offset + 1
 
                 # Check "Remark" column (Assuming col 10, index 9)
-                # Ensure row length
                 if len(row) < 10:
                     continue
 
@@ -114,11 +119,15 @@ class AutoFillUseCase:
                         self._lawyer_repo.ensure_exists(new_codes)
                         known_codes_set.update(new_codes)
 
-                    self._apply_updates(excel_row_num, selected_codes, updates)
+                    # Apply Replacements
+                    final_codes = self._resolve_replacements(selected_codes)
+                    self._apply_updates(excel_row_num, final_codes, updates)
                     updated_count += 1
                 else:
                     # Auto Matched
-                    self._apply_updates(excel_row_num, matched, updates)
+                    # Apply Replacements
+                    final_codes = self._resolve_replacements(matched)
+                    self._apply_updates(excel_row_num, final_codes, updates)
                     updated_count += 1
 
             # 5. Save Updates
@@ -142,17 +151,18 @@ class AutoFillUseCase:
         raise Exception("Header not found (expected '備註' in column 10)")
 
     def _find_matches(self, summary: str, known_codes: set[str]) -> list[str]:
-        # 1. Direct match with aliases
-        # (Assuming we have aliases loaded or repo calls)
-        # For Optimization, we should load aliases once.
-        # But here for simplicity:
-        # Check against known codes
+        # 1. Direct match with known codes
         matches = [c for c in known_codes if c in summary]
-
-        # Check against aliases (We need to resolve aliases to codes)
-        # Ideally we load all aliases map: source -> [targets]
-        # Skipping alias logic for brevity in this step, focusing on flow.
         return matches
+
+    def _resolve_replacements(self, codes: list[str]) -> list[str]:
+        final = []
+        for code in codes:
+            if code in self._replacement_map:
+                final.extend(self._replacement_map[code])
+            else:
+                final.append(code)
+        return final
 
     def _apply_updates(self, row_num: int, codes: list[str], updates: list):
         # Join unique codes

@@ -11,12 +11,12 @@ class SQLALawyerRepository(LawyerRepository):
         with session_scope() as session:
             # Sort by code
             db_lawyers = session.query(DbLawyer).order_by(DbLawyer.code).all()
-            return [Lawyer(code=l.code, name=l.name or "") for l in db_lawyers]
+            return [Lawyer(code=l.code) for l in db_lawyers]
 
     def add(self, lawyer: Lawyer) -> None:
         with session_scope() as session:
             if not session.get(DbLawyer, lawyer.code):
-                session.add(DbLawyer(code=lawyer.code, name=lawyer.name))
+                session.add(DbLawyer(code=lawyer.code))
 
     def ensure_exists(self, codes: list[str]) -> None:
         with session_scope() as session:

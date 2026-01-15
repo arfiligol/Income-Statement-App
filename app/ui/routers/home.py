@@ -6,7 +6,9 @@ from app.application.use_cases.separate_ledger import SeparateLedgerUseCase
 from app.infrastructure.gateways.excel_report_gateway import ExcelReportGateway
 from app.infrastructure.gateways.nicegui_interaction import NiceGUIInteractionGateway
 from app.infrastructure.repositories.excel_pandas_repo import ExcelPandasRepository
-from app.infrastructure.repositories.sqla_alias_repo import SQLAAliasRepository
+from app.infrastructure.repositories.sqla_code_replacement_repo import (
+    SQLACodeReplacementRepository,
+)
 from app.infrastructure.repositories.sqla_lawyer_repo import SQLALawyerRepository
 from app.ui.components.layout.shell import app_shell
 from app.ui.pages.database_page import DatabasePage
@@ -27,14 +29,14 @@ def register_routes():
             # 1. Infrastructure
             excel_repo = ExcelPandasRepository()
             lawyer_repo = SQLALawyerRepository()
-            alias_repo = SQLAAliasRepository()
+            replacement_repo = SQLACodeReplacementRepository()
             interaction_gw = NiceGUIInteractionGateway()
             report_gw = ExcelReportGateway()
 
             # 2. Application
             import_use_case = ImportExcelUseCase(excel_repo)
             auto_fill_use_case = AutoFillUseCase(
-                excel_repo, lawyer_repo, alias_repo, interaction_gw
+                excel_repo, lawyer_repo, replacement_repo, interaction_gw
             )
             sep_ledger_use_case = SeparateLedgerUseCase(
                 excel_repo, lawyer_repo, report_gw
@@ -52,15 +54,15 @@ def register_routes():
         def render_database():
             # 1. Infrastructure
             lawyer_repo = SQLALawyerRepository()
-            alias_repo = SQLAAliasRepository()
+            replacement_repo = SQLACodeReplacementRepository()
 
             # 2. UI
-            vm = DatabaseViewModel(lawyer_repo, alias_repo)
+            vm = DatabaseViewModel(lawyer_repo, replacement_repo)
             page = DatabasePage(vm)
 
             page.render_content()
 
         def render_content():
-            ui.sub_pages({"/": render_toolbox, "/database": render_database})
+            subpages = ui.sub_pages({"/": render_toolbox, "/database": render_database})
 
         app_shell(render_content)

@@ -32,6 +32,9 @@ def app_shell(content_builder: Callable):
     dark = ui.dark_mode()
     apply_dark_mode(store.state.is_dark_mode)
     ui.query("body").classes("bg-bg text-fg")
+    ui.query(".q-layout").style("width: 100%; max-width: none;")
+    ui.query(".q-page-container").style("width: 100%; max-width: none;")
+    ui.query(".q-page").style("width: 100%; max-width: none;")
 
     # 2. Header
     with ui.header().classes(
@@ -55,7 +58,7 @@ def app_shell(content_builder: Callable):
         ).classes("text-muted")
 
     # 3. Sidebar (Drawer)
-    with ui.left_drawer(value=True).classes(
+    with ui.left_drawer(value=False).classes(
         "bg-bg border-r border-border"
     ) as left_drawer:
         with ui.column().classes("w-full gap-2 p-4"):
@@ -72,5 +75,11 @@ def app_shell(content_builder: Callable):
             nav_btn("資料庫 (Database)", "storage", "/database")
 
     # 4. Main Content
-    with ui.column().classes("w-full p-0 bg-bg min-h-screen text-fg"):
-        content_builder()
+    with ui.element("div").classes("q-page-container w-full p-0 bg-bg text-fg"):
+        with ui.element("div").classes("q-page w-full"):
+            with (
+                ui.column()
+                .classes("w-full max-w-none px-6 py-8 gap-6 items-stretch")
+                .style("width: 100%; max-width: none;")
+            ):
+                content_builder()

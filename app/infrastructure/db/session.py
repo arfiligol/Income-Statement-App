@@ -12,6 +12,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.infrastructure.db.base import Base
+from app.infrastructure.db.code_replacement import DbCodeReplacement
 
 load_dotenv()
 

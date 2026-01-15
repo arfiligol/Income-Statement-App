@@ -10,3 +10,4 @@ class Lawyer(Base):
     __tablename__ = "lawyers"
 
     code: Mapped[str] = mapped_column(String, primary_key=True)
+    name: Mapped[str | None] = mapped_column(String, nullable=True)
