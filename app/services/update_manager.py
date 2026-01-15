@@ -181,18 +181,31 @@ class UpdateManager:
         script_content = rf"""
 @echo off
 echo Waiting for application to exit...
-ping 127.0.0.1 -n 3 > nul
+timeout /t 3 /nobreak > nul
+
+:: Force kill just in case
+taskkill /F /IM IncomeStatement.exe > nul 2>&1
 
 echo Moving files...
 :RETRY
+:: Try to rename the current folder to backup
 move /Y "{current}" "{current}.bak"
 if errorlevel 1 (
     echo File locked, retrying...
-    ping 127.0.0.1 -n 2 > nul
+    timeout /t 2 /nobreak > nul
+    taskkill /F /IM IncomeStatement.exe > nul 2>&1
     goto RETRY
 )
 
+:: Move the new folder to current location
 move /Y "{new}" "{current}"
+if errorlevel 1 (
+    echo Move failed, restoring backup...
+    move /Y "{current}.bak" "{current}"
+    pause
+    exit
+)
+
 echo Restarting...
 start "" "{current}\IncomeStatement.exe"
 """
