@@ -52,6 +52,7 @@ class UpdateDialog:
             ui.notify(f"Update Failed: {ex}", type="negative")
             e.sender.enable()
 
+    def _run_download(self):
         def update_progress(p):
             # Safe to update NiceGUI element from thread?
             # Ideally use ui.run_javascript or app.call_soon/loop.call_soon_threadsafe
