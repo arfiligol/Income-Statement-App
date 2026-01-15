@@ -59,3 +59,11 @@
 - DTOs 是唯一的跨層資料結構。
 - Web/Native 差異隔離於 Infrastructure Gateways。
 - 每個頁面只有一個 ViewState；效果不儲存於 State。
+
+### 跨平台相容性 (Cross-Platform Compatibility)
+
+- **路徑處理**: 必須使用 `pathlib.Path`；禁止字串連接路徑。
+- **Windows 路徑**: 涉及反斜線 `\` 的字串 (如正則表達式或 Windows 腳本)，必須使用 Raw Strings (`r"..."`)。
+- **非同步執行**: CPU/IO 密集任務必須移出主要事件迴圈。
+  - 使用 `nicegui.run.io_bound` (注意: `ui.run` 是 `nicegui` 的 alias，但有時會造成 getattr 錯誤，建議 `from nicegui import run`)。
+

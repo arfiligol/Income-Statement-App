@@ -156,7 +156,7 @@ class UpdateManager:
     def _run_windows_update(self, current: Path, new: Path, temp_dir: Path):
         script_path = temp_dir / "updater.bat"
         # Using ping for delay as timeout is not always robust in all shells
-        script_content = f"""
+        script_content = rf"""
 @echo off
 echo Waiting for application to exit...
 ping 127.0.0.1 -n 3 > nul

@@ -17,6 +17,8 @@ class StatementEditorPage:
         self.lbl_file_status = None
         self.step2_card = None
         self.step3_card = None
+        self.lbl_step2_instruction = None
+        self.lbl_step3_instruction = None
         self.lbl_autofill_status = None
         self.lbl_ledger_status = None
         self.link_download = None
@@ -74,6 +76,9 @@ class StatementEditorPage:
                         self.lbl_autofill_status = ui.label("等待執行...").classes(
                             "text-xs font-mono text-primary mt-1"
                         )
+                        self.lbl_step2_instruction = ui.label(
+                            "系統將掃描 Excel 摘要。若發現未知代碼，將彈出對話框供您手動選擇或輸入。"
+                        ).classes("text-sm text-primary mt-2 hidden")
 
                 ui.button(
                     "執行自動檢查",
@@ -99,6 +104,9 @@ class StatementEditorPage:
                         self.lbl_ledger_status = ui.label("等待執行...").classes(
                             "text-xs font-mono text-primary mt-1"
                         )
+                        self.lbl_step3_instruction = ui.label(
+                            "請確認 Step 2 結果無誤後，點擊「產生報表」進行分帳計算與匯出。"
+                        ).classes("text-sm text-primary mt-2 hidden")
 
                 with ui.column().classes("items-end"):
                     ui.button(
@@ -119,10 +127,15 @@ class StatementEditorPage:
         if state.file_source:
             self.lbl_file_status.text = f"已選擇: {state.file_source.filename}"
             self.step2_card.classes(remove="opacity-50 pointer-events-none")
+            self.step3_card.classes(remove="opacity-50 pointer-events-none")
+            self.lbl_step2_instruction.classes(remove="hidden")
+            self.lbl_step3_instruction.classes(remove="hidden")
         else:
             self.lbl_file_status.text = "尚未選擇檔案"
             self.step2_card.classes(add="opacity-50 pointer-events-none")
             self.step3_card.classes(add="opacity-50 pointer-events-none")
+            self.lbl_step2_instruction.classes(add="hidden")
+            self.lbl_step3_instruction.classes(add="hidden")
 
         # Update AutoFill Status & Step 3 Enable
         if state.auto_fill_result:
@@ -130,7 +143,9 @@ class StatementEditorPage:
                 f"完成！修正 {state.auto_fill_result.updated_count} 筆。"
             )
             self.lbl_autofill_status.classes(replace="text-success")
-            self.step3_card.classes(remove="opacity-50 pointer-events-none")
+
+            # Step 3 is already enabled by file selection
+            # self.step3_card.classes(remove="opacity-50 pointer-events-none")
         elif state.is_loading and not state.separate_ledger_result:
             # Only show loading on Step 2 label if step 3 not active? Simplified logic.
             self.lbl_autofill_status.text = "執行中..."

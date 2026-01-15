@@ -2,7 +2,7 @@ import time
 from pathlib import Path
 from typing import Callable
 
-from nicegui import ui
+from nicegui import run, ui
 
 from app.services.update_manager import UpdateManager
 from app.ui.components.dialogs.update_dialog import UpdateDialog
@@ -41,7 +41,7 @@ def app_shell(content_builder: Callable):
             exists, ver = _cached_update_info
         else:
             mgr = UpdateManager()
-            exists, ver = await ui.run.io_bound(mgr.check_for_update)
+            exists, ver = await run.io_bound(mgr.check_for_update)
             _last_check_time = time.time()
             _cached_update_info = (exists, ver)
 
