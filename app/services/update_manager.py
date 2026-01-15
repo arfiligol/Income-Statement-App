@@ -77,17 +77,8 @@ class UpdateManager:
         if not self.download_url:
             raise ValueError("No download URL found. Run check_for_update first.")
 
-        # SAFETY CHECK: Prevent running update logic in dev mode
-        if not getattr(sys, "frozen", False):
-            print(
-                "Running in development mode. Skipping download and swap to protect source code."
-            )
-            print(
-                "To test full update, please build the app using 'python build.py' and run the executable."
-            )
-            if progress_callback:
-                progress_callback(1.0)  # Simulate completion
-            return
+        # Check dev mode
+        is_dev = not getattr(sys, "frozen", False)
 
         # 1. Download
         temp_dir = Path(tempfile.mkdtemp(prefix="IncomeStatement_Update_"))
@@ -98,14 +89,21 @@ class UpdateManager:
             with requests.get(self.download_url, stream=True) as r:
                 r.raise_for_status()
                 total_length = int(r.headers.get("content-length", 0))
+                print(f"DEBUG: Download size: {total_length} bytes")
+
                 downloaded = 0
 
                 with open(zip_path, "wb") as f:
                     for chunk in r.iter_content(chunk_size=8192):
                         f.write(chunk)
                         downloaded += len(chunk)
-                        if progress_callback and total_length > 0:
-                            progress_callback(downloaded / total_length)
+                        if progress_callback:
+                            if total_length > 0:
+                                progress_callback(downloaded / total_length)
+                            else:
+                                # Fallback if no length provided: indeterminate or fake progress
+                                # Just show something moving? Or keep at 0?
+                                pass
 
             # 2. Extract
             print("Extracting...")
@@ -114,12 +112,18 @@ class UpdateManager:
                 zip_ref.extractall(extract_dir)
 
             # Find the inner app folder
-            # For Windows: inside zip 'IncomeStatement/app.exe', so we look for 'IncomeStatement' folder
-            # For macOS: inside zip 'IncomeStatement/IncomeStatement.app' or similar structure
-
             new_app_path = self._find_app_root(extract_dir)
             if not new_app_path:
                 raise FileNotFoundError("Could not find application in update archive.")
+
+            # SAFETY CHECK: Stop here in dev mode
+            if is_dev:
+                print("DEV MODE: Download and extract successful.")
+                print(f"Update ready at: {new_app_path}")
+                print("Skipping file swap and restart to protect source code.")
+                if progress_callback:
+                    progress_callback(1.0)
+                return
 
             # 3. Generate Script & Swap
             current_app_path = self._get_current_app_path()

@@ -50,7 +50,7 @@ def build():
 
     # Platform specific
     if platform.system() == "Windows":
-        cmd.extend(["--windowed", "--icon", "app/static/mom_accounting.ico"])
+        cmd.extend(["--icon", "app/static/mom_accounting.ico"])
     elif platform.system() == "Darwin":  # macOS
         cmd.extend(["--windowed", "--icon", "app/static/mom_accounting.icns"])
 

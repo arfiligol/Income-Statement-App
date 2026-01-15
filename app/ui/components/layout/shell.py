@@ -122,6 +122,13 @@ def app_shell(content_builder: Callable):
             nav_btn("資料處理 (Toolbox)", "handyman", "/")
             nav_btn("資料庫 (Database)", "storage", "/database")
 
+            ui.space()
+            from app.common.version import __version__
+
+            ui.label(f"v{__version__}").classes(
+                "text-xs text-muted font-mono opacity-50"
+            )
+
     # 4. Main Content
     with ui.element("div").classes("q-page-container w-full p-0 bg-bg text-fg"):
         with ui.element("div").classes("q-page w-full"):
