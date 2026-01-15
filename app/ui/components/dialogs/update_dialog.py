@@ -11,6 +11,7 @@ class UpdateDialog:
         self.version = version
         self.dialog = ui.dialog().props("persistent")
         self.progress = None
+        self.progress_label = None
         self.status = None
 
     def open(self):
@@ -19,7 +20,18 @@ class UpdateDialog:
             ui.label(f"目標版本: {self.version}").classes("text-gray-500 mb-4")
 
             self.status = ui.label("準備下載...").classes("text-sm mb-2")
-            self.progress = ui.linear_progress(value=0).classes("w-full mb-4")
+
+            # Progress bar with customized label via slot
+            self.progress = (
+                ui.linear_progress(value=0)
+                .classes("w-full mb-4 h-6 rounded")
+                .props("size=25px rounded color=primary track-color=grey-3")
+            )
+            with self.progress:
+                with ui.element("div").classes("absolute-full flex flex-center"):
+                    self.progress_label = ui.label("0%").classes(
+                        "text-white text-xs font-bold"
+                    )
 
             with ui.row().classes("w-full justify-end"):
                 ui.button("開始更新", on_click=self._start_update).props(
@@ -46,6 +58,8 @@ class UpdateDialog:
 
             self.status.set_text("下載完成！正在重啟...")
             self.progress.set_value(1.0)
+            if self.progress_label:
+                self.progress_label.set_text("100%")
 
         except Exception as ex:
             self.status.set_text(f"更新失敗: {ex}")
@@ -61,9 +75,10 @@ class UpdateDialog:
             # But let's try direct update, if it fails we wrap.
             if self.progress:
                 self.progress.value = p
-                # Show percentage in status
+
+                # Update label inside bar
                 pct = int(p * 100)
-                if self.status:
-                    self.status.text = f"下載中... {pct}%"
+                if self.progress_label:
+                    self.progress_label.set_text(f"{pct}%")
 
         self.manager.download_and_install(progress_callback=update_progress)
