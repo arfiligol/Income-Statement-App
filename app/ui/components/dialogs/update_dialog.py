@@ -61,5 +61,9 @@ class UpdateDialog:
             # But let's try direct update, if it fails we wrap.
             if self.progress:
                 self.progress.value = p
+                # Show percentage in status
+                pct = int(p * 100)
+                if self.status:
+                    self.status.text = f"下載中... {pct}%"
 
         self.manager.download_and_install(progress_callback=update_progress)
