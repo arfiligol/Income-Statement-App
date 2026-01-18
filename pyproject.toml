@@ -15,6 +15,7 @@ dependencies = [
     "openpyxl>=3.1.5",
     "pandas>=2.3.3",
     "python-dotenv>=1.2.1",
+    "pythonnet>=3.0.3",
     "pywebview>=6.1",
     "requests>=2.31.0",
     "sqlalchemy>=2.0.44",
@@ -23,12 +24,11 @@ dependencies = [
 ]
 
 [project.scripts]
-start = "income_statement_app.main:run"
+start = "main:run"
 
 [dependency-groups]
 dev = [
     "basedpyright>=1.35.0",
-    "briefcase>=0.3.26",
     "nuitka>=2.8.9",
     "pillow>=12.1.0",
     "pyinstaller>=6.17.0",
@@ -36,45 +36,5 @@ dev = [
     "zstandard>=0.25.0",
 ]
 
-[tool.briefcase]
-project_name = "Income-Statement-App"
-bundle = "com.arfiligol"
-version = "0.2.1"
-url = "https://github.com/arfiligol/Income-Statement-App"
-license.file = "LICENSE"
-author = "arfiligol"
-
-[tool.briefcase.app.income_statement_app]
-formal_name = "Income-Statement-App"
-description = "A helper application for ledger separation."
-long_description = "A helper application for accounting and ledger separation."
-sources = ["src/income_statement_app"]
-requires = [
-    "colorlog>=6.10.1",
-    "nicegui>=1.4.0",
-    "numpy>=2.3.5",
-    "openpyxl>=3.1.5",
-    "pandas>=2.3.3",
-    "python-dotenv>=1.2.1",
-    "pywebview>=6.1",
-    "requests>=2.31.0",
-    "sqlalchemy>=2.0.44",
-    "watchdog>=6.0.0",
-    "xlrd>=2.0.2",
-]
-
-[tool.briefcase.app.income_statement_app.macOS]
-requires = [
-    "std-nslog>=1.0.0",
-]
-
-[tool.briefcase.app.income_statement_app.linux]
-requires = [
-    "systemd-python>=234",
-]
-
 [tool.hatch.build.targets.wheel]
-packages = ["src/income_statement_app"]
-[tool.briefcase.app.income_statement_app.windows]
-requires = []
-
+packages = ["src"]

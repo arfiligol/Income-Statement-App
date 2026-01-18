@@ -4,8 +4,6 @@
 
 ## 功能特點
 
-## 功能特點
-
 -   **明細分帳 (Separate Ledger)**：讀取 Excel 檔案，根據備註欄位的律師代碼，自動計算並拆分借貸金額。
 -   **自動填寫 (Auto Fill)**：根據摘要內容自動判斷並填入律師代碼 (Step 2)。
 -   **代碼替換 (Code Replacement)**：支援設定代碼替換規則 (例如 `KW` -> `KW, HL`)，在 Step 2 自動展開多位律師。
@@ -29,10 +27,10 @@
 ## 執行應用程式
 
 ```bash
-# 使用 Briefcase 開發模式（推薦）
-uv run briefcase dev
+# 開發模式（推薦）
+uv run python src/main.py
 
-# 或使用 project scripts
+# 或使用 project scripts (需配置後使用)
 uv run start
 ```
 
@@ -60,43 +58,134 @@ uv run start
 
 ```
 Income-Statement-App/
-├── src/income_statement_app/   # 主程式碼 (Briefcase src layout)
+├── src/                        # 主程式碼
 │   ├── application/            # Use Cases + Ports
 │   ├── domain/                 # DTOs
 │   ├── infrastructure/         # Excel/DB/OS 實作
 │   ├── services/               # 服務層 (如 UpdateManager)
 │   ├── ui/                     # ViewModel + Pages + Components
+│   ├── static/                 # 靜態資源 (圖標等)
 │   └── main.py                 # 程式進入點
+├── data/                       # 開發用資料庫目錄
 ├── docs/                       # 專案文件
 └── pyproject.toml              # 專案設定
 ```
 
 ## 打包發布 (Packaging)
 
-本專案採用 **Briefcase** 進行跨平台打包。
+本專案使用 **nicegui-pack** (基於 PyInstaller) 進行桌面應用打包。
 
-1.  **開發測試**：
-    ```bash
-    uv run briefcase dev
-    ```
+### 開發測試
 
-2.  **建立專案框架**：
-    ```bash
-    uv run briefcase create windows  # 或 macOS, linux
-    ```
+```bash
+uv run python src/main.py
+```
 
-3.  **編譯執行檔**：
-    ```bash
-    uv run briefcase build windows
-    ```
+### 打包發布腳本 (推薦)
 
-4.  **打包安裝程式**：
-    ```bash
-    uv run briefcase package windows
-    ```
+我們提供了一個 Python 腳本，自動完成「清理 -> 打包 -> 壓縮」的流程。
 
-5.  **發布更新 (Release)**：
-    將 `dist/` 目錄下的安裝檔上傳至 GitHub Releases，系統即可透過自動更新機制下載安裝。
+```bash
+uv run python build.py
+```
+
+執行成功後，您會在 `dist/` 目錄下看到 `Income-Statement-App_platform_vX.X.X.zip` (例如 `Income-Statement-App_windows_0.2.1.zip`)。只要將此檔案上傳至 GitHub Releases 即可。
+
+### 手動打包指令
+
+如果您需要手動調整參數，可以使用以下指令：
+
+**PowerShell (Windows)**
+```powershell
+uv run nicegui-pack `
+    --name "Income-Statement-App" `
+    --icon "src/static/mom_accounting.ico" `
+    --onedir `
+    --windowed `
+    --noconfirm `
+    --add-data "src/ui/styles;ui/styles" `
+    --add-data "src/static;static" `
+    src/main.py
+```
+
+**Bash (Git Bash / WSL)**
+```bash
+uv run nicegui-pack \
+    --name "Income-Statement-App" \
+    --icon "src/static/mom_accounting.ico" \
+    --onedir \
+    --windowed \
+    --noconfirm \
+    --add-data "src/ui/styles;ui/styles" \
+    --add-data "src/static;static" \
+    src/main.py
+```
+
+### 打包選項說明
+
+| 選項 | 說明 |
+|------|------|
+| `--name` | 可執行檔名稱 |
+| `--icon` | 應用程式圖標 (.ico) |
+| `--onedir` | 輸出目錄形式（啟動較快），便於分發 |
+| `--windowed` | 隱藏 console 視窗（需配合 `native=True`） |
+| `--add-data` | **必要** - 包含靜態資源（CSS 樣式、圖標等） |
+| `--noconfirm` | 自動覆蓋現有輸出目錄 |
+
+### 發布更新
+
+1. 打包完成後，`dist/Income-Statement-App/` 目錄即為可執行程式
+2. 壓縮該目錄為 `.zip` 並上傳至 GitHub Releases
+3. 應用程式啟動時會自動檢查更新並引導安裝
+
+---
+
+## 打包常見問題 (Troubleshooting)
+
+### ❌ Briefcase 打包失敗
+
+**問題**：之前嘗試使用 Briefcase 打包 NiceGUI native 應用，視窗無法正常顯示。
+
+**原因**：
+1. NiceGUI native 模式使用 `multiprocessing` 啟動 pywebview 進程
+2. Windows 打包環境需要 `multiprocessing.freeze_support()` 在程式最開頭呼叫
+3. 即使加入 freeze_support 仍有其他相容性問題
+
+**解決方案**：改用 **nicegui-pack** (PyInstaller)。
+
+---
+
+### ❌ UI 樣式跑掉 (CSS 未載入)
+
+**問題**：打包後應用程式可運行，但 UI 樣式不正確。
+
+**原因**：PyInstaller 預設不會包含 Python 程式碼以外的資源檔案。
+
+**解決方案**：使用 `--add-data` 參數明確指定靜態資源：
+```bash
+--add-data "src/ui/styles;ui/styles"
+--add-data "src/static;static"
+```
+
+---
+
+### ❌ 其他電腦無法運行
+
+**問題**：開發機可以運行，但其他電腦無法執行。
+
+**可能原因與解決**：
+1. **缺少 VC++ Runtime** - 確保目標電腦安裝 [Visual C++ Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe)
+2. **WebView2 未安裝** - NiceGUI native 模式需要 [WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/)
+3. **Python 版本不符** - 確保使用相同 Python 版本打包
+
+---
+
+### ⚠️ 資料庫位置
+
+- **開發模式**：`./data/sqlite_db.db`
+- **打包後**：`%LOCALAPPDATA%/Income-Statement-App/sqlite_db.db` (Windows)
+
+---
 
 ## 授權 (License)
 
