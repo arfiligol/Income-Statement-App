@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 
 # Ensure 'app' (and root) is in python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -11,20 +12,60 @@ from income_statement_app.ui.routers.home import register_routes
 
 def run() -> None:
     # Handle missing streams in frozen/windowed mode to prevent Uvicorn crashes
-    # (AttributeError: 'NoneType' object has no attribute 'isatty')
-    if sys.stdout is None:
-        class NullWriter:
-            def write(self, text): pass
-            def flush(self): pass
-            def isatty(self): return False
-        sys.stdout = NullWriter()
-        
-    if sys.stderr is None:
-         class NullWriter:
-            def write(self, text): pass
-            def flush(self): pass
-            def isatty(self): return False
-         sys.stderr = NullWriter()
+    # Redirect to a log file for debugging
+    if sys.stdout is None or sys.stderr is None:
+        try:
+            app_name = "Income-Statement-App"
+            if sys.platform == "win32":
+                log_dir = Path(os.environ["LOCALAPPDATA"]) / app_name / "logs"
+            elif sys.platform == "darwin":
+                log_dir = (
+                    Path.home() / "Library" / "Application Support" / app_name / "logs"
+                )
+            else:
+                log_dir = Path.home() / ".local" / "share" / app_name / "logs"
+
+            log_dir.mkdir(parents=True, exist_ok=True)
+            log_file = log_dir / "startup.log"
+
+            # Simple file writer that satisfies isatty()
+            class LogWriter:
+                def __init__(self, path):
+                    self.file = open(path, "a", encoding="utf-8")
+                    self.file.write(f"\n--- Startup at {os.getcwd()} ---\n")
+
+                def write(self, text):
+                    self.file.write(text)
+                    self.file.flush()
+
+                def flush(self):
+                    self.file.flush()
+
+                def isatty(self):
+                    return False
+
+            writer = LogWriter(log_file)
+            if sys.stdout is None:
+                sys.stdout = writer
+            if sys.stderr is None:
+                sys.stderr = writer
+
+        except Exception:
+            # Fallback if logging fails
+            class NullWriter:
+                def write(self, text):
+                    pass
+
+                def flush(self):
+                    pass
+
+                def isatty(self):
+                    return False
+
+            if sys.stdout is None:
+                sys.stdout = NullWriter()
+            if sys.stderr is None:
+                sys.stderr = NullWriter()
 
     # 1. Register Routes (and setup dependency graph)
     register_routes()

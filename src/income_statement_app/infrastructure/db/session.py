@@ -21,16 +21,29 @@ _Session = None
 
 
 def _resolve_database_path() -> Path:
+    # Check if packaged (frozen)
     if getattr(sys, "frozen", False):
-        base_dir = Path(sys.executable).resolve().parent
+        app_name = "Income-Statement-App"
+        if sys.platform == "win32":
+            # Windows: %LOCALAPPDATA%/Income-Statement-App
+            base_dir = Path(os.environ["LOCALAPPDATA"]) / app_name
+        elif sys.platform == "darwin":
+            # macOS: ~/Library/Application Support/Income-Statement-App
+            base_dir = Path.home() / "Library" / "Application Support" / app_name
+        else:
+            # Linux: ~/.local/share/Income-Statement-App
+            base_dir = Path.home() / ".local" / "share" / app_name
     else:
-        base_dir = Path(__file__).resolve().parents[3]
+        # Dev mode: use local data folder in project root
+        base_dir = Path(__file__).resolve().parents[3] / "data"
 
     db_filename = os.getenv("DATABASE_FILENAME", "sqlite_db.db")
-    db_path = base_dir / "data" / db_filename
+    db_path = base_dir / db_filename
+
     if not db_path.parent.exists():
-        logging.info("SQLite database directory missing, creating it.")
+        logging.info(f"Creating database directory: {db_path.parent}")
         db_path.parent.mkdir(parents=True, exist_ok=True)
+
     return db_path
 
 
