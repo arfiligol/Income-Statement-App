@@ -29,19 +29,11 @@
 ## 執行應用程式
 
 ```bash
+# 使用 Briefcase 開發模式（推薦）
+uv run briefcase dev
+
+# 或使用 project scripts
 uv run start
-```
-
-或直接執行：
-
-```bash
-python main.py
-```
-
-如需 Hot Reload：
-
-```bash
-NICEGUI_RELOAD=1 python main.py
 ```
 
 ## 安裝說明 (開發者)
@@ -64,23 +56,47 @@ NICEGUI_RELOAD=1 python main.py
     cp .env.example .env
     ```
 
+## 專案結構
+
+```
+Income-Statement-App/
+├── src/income_statement_app/   # 主程式碼 (Briefcase src layout)
+│   ├── application/            # Use Cases + Ports
+│   ├── domain/                 # DTOs
+│   ├── infrastructure/         # Excel/DB/OS 實作
+│   ├── services/               # 服務層 (如 UpdateManager)
+│   ├── ui/                     # ViewModel + Pages + Components
+│   └── main.py                 # 程式進入點
+├── docs/                       # 專案文件
+└── pyproject.toml              # 專案設定
+```
+
 ## 打包發布 (Packaging)
 
-本專案採用 **PyInstaller** (透過 `nicegui-pack`) 進行跨平台打包，並整合自動更新機制。
+本專案採用 **Briefcase** 進行跨平台打包。
 
-1.  **一鍵打包 (Build & Zip)**：
-    直接執行專案根目錄下的 `build.py` 腳本：
+1.  **開發測試**：
     ```bash
-    python build.py
+    uv run briefcase dev
     ```
 
-    此腳本會自動完成以下動作：
-    - 清除舊的建置檔案 (`build/`, `dist/`)。
-    - 使用 `nicegui-pack` 產生平台對應的執行檔 (`.app` 或 `.exe`)。
-    - 將產出物壓縮為 `macos.zip` 或 `windows.zip`，位於 `dist/` 目錄下。
+2.  **建立專案框架**：
+    ```bash
+    uv run briefcase create windows  # 或 macOS, linux
+    ```
 
-2.  **發布更新 (Release)**：
-    將 `dist/` 目錄下的 zip 檔案上傳至 GitHub Releases，系統即可透過自動更新機制下載安裝。
+3.  **編譯執行檔**：
+    ```bash
+    uv run briefcase build windows
+    ```
+
+4.  **打包安裝程式**：
+    ```bash
+    uv run briefcase package windows
+    ```
+
+5.  **發布更新 (Release)**：
+    將 `dist/` 目錄下的安裝檔上傳至 GitHub Releases，系統即可透過自動更新機制下載安裝。
 
 ## 授權 (License)
 
