@@ -23,16 +23,9 @@ _Session = None
 def _resolve_database_path() -> Path:
     # Check if packaged (frozen)
     if getattr(sys, "frozen", False):
-        app_name = "Income-Statement-App"
-        if sys.platform == "win32":
-            # Windows: %LOCALAPPDATA%/Income-Statement-App
-            base_dir = Path(os.environ["LOCALAPPDATA"]) / app_name
-        elif sys.platform == "darwin":
-            # macOS: ~/Library/Application Support/Income-Statement-App
-            base_dir = Path.home() / "Library" / "Application Support" / app_name
-        else:
-            # Linux: ~/.local/share/Income-Statement-App
-            base_dir = Path.home() / ".local" / "share" / app_name
+        # Packaged mode: use directory of the executable (Portable mode)
+        # This allows the DB to be in the same folder as the .exe
+        base_dir = Path(sys.executable).parent
     else:
         # Dev mode: use local data folder in project root
         base_dir = Path(__file__).resolve().parents[3] / "data"

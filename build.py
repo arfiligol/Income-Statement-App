@@ -53,7 +53,16 @@ def build():
     ]
 
     print(f"Running command: {' '.join(cmd)}")
-    subprocess.run(cmd, check=True)
+
+    # Add src to PYTHONPATH so PyInstaller can find modules like 'ui'
+    env = os.environ.copy()
+    src_path = os.path.abspath("src")
+    if "PYTHONPATH" in env:
+        env["PYTHONPATH"] = src_path + os.pathsep + env["PYTHONPATH"]
+    else:
+        env["PYTHONPATH"] = src_path
+
+    subprocess.run(cmd, check=True, env=env)
 
 
 import platform

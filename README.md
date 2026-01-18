@@ -181,11 +181,21 @@ uv run nicegui-pack \
 ---
 
 ### ⚠️ 資料庫位置
-
 - **開發模式**：`./data/sqlite_db.db`
-- **打包後**：`%LOCALAPPDATA%/Income-Statement-App/sqlite_db.db` (Windows)
+- **打包後 (Portable Mode)**：`./sqlite_db.db` (與 .exe 同目錄)
 
 ---
+
+### 👻 只有背景程序但無視窗 (Phantom Process)
+
+**問題**：應用程式啟動後，工作管理員有看到程序，但沒有視窗跳出。
+
+**解決方案**：
+1. **檢查 Log**：查看 `%LOCALAPPDATA%\Income-Statement-App\logs\startup.log`。
+2. **安裝 WebView2**：確保目標電腦已安裝 [WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/)。
+3. **管理員權限**：嘗試以「系統管理員身分執行」，這通常能解決 `pywebview` 寫入暫存檔的權限問題。
+4. **硬體加速問題**：本版本 (v0.2.0+) 已預設停用 WebView2 硬體加速 (`--disable-gpu`) 以提升相容性。
+5. **防毒軟體**：檢查是否被防毒軟體 (如 SentinelOne, CrowdStrike) 靜默封鎖。
 
 ## 授權 (License)
 

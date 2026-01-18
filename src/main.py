@@ -32,15 +32,26 @@ def run() -> None:
             import logging
 
             # Clear existing handlers to ensure file logging works
+            # Clear existing handlers to ensure file logging works
             logging.getLogger().handlers = []
-            logging.basicConfig(
-                level=logging.DEBUG,
-                filename=log_file,
-                filemode="w",
-                format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+
+            # Create handler that flushes immediately
+            file_handler = logging.FileHandler(log_file, mode="w", encoding="utf-8")
+            file_handler.setFormatter(
+                logging.Formatter(
+                    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                )
             )
+
+            # Root logger config
+            root_logger = logging.getLogger()
+            root_logger.setLevel(logging.DEBUG)
+            root_logger.addHandler(file_handler)
+
             logging.info(f"Startup at {os.getcwd()}")
             logging.info(f"Python: {sys.version}")
+            logging.info(f"Executable: {sys.executable}")
+            logging.info(f"Platform: {sys.platform}")
 
             # Redirect stdout/stderr to this file
             class FileLogWriter:
@@ -48,17 +59,23 @@ def run() -> None:
                     self.logger_func = logger_func
 
                 def write(self, text):
-                    if text.strip():
+                    if text and text.strip():
                         self.logger_func(text.strip())
+                        # Force flush handler
+                        for handler in logging.getLogger().handlers:
+                            handler.flush()
 
                 def flush(self):
-                    pass
+                    for handler in logging.getLogger().handlers:
+                        handler.flush()
 
                 def isatty(self):
                     return False
 
             sys.stdout = FileLogWriter(logging.info)
             sys.stderr = FileLogWriter(logging.error)
+
+            logging.info("Logging configured successfully. Checkpoints initialized.")
 
         except Exception:
             # Fallback if logging fails
@@ -74,6 +91,12 @@ def run() -> None:
 
     # 2. Run App
     # Common screen size for desktop apps
+    # Workaround for hidden window issue on some machines:
+    # Disable hardware acceleration and GPU compositing
+    os.environ["WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS"] = (
+        "--disable-gpu --disable-d3d11"
+    )
+
     ui.run(
         title="Income Statement App (Clean Arch)",
         native=True,
@@ -94,7 +117,11 @@ def resource_path(relative_path: str) -> str:
     return os.path.join(base_path, relative_path)
 
 
+import multiprocessing
+
 if __name__ in {"__main__", "__mp_main__"}:
+    # Required for PyInstaller on Windows when using multiprocessing (NiceGUI native uses it)
+    multiprocessing.freeze_support()
     try:
         run()
     except KeyboardInterrupt:
