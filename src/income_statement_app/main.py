@@ -26,7 +26,7 @@ def run() -> None:
         native=True,
         window_size=(1200, 800),
         reload=False,
-        favicon=resource_path("app/static/mom_accounting.ico"),
+        favicon=resource_path("static/mom_accounting.ico"),
     )
 
 
