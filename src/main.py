@@ -90,13 +90,6 @@ def run() -> None:
     app.on_shutdown(lambda: os._exit(0))
 
     # 2. Run App
-    # Common screen size for desktop apps
-    # Workaround for hidden window issue on some machines:
-    # Disable hardware acceleration and GPU compositing
-    os.environ["WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS"] = (
-        "--disable-gpu --disable-d3d11"
-    )
-
     ui.run(
         title="Income Statement App (Clean Arch)",
         native=True,

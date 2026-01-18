@@ -20,11 +20,12 @@ def get_version():
 
 
 def clean():
-    """Clean dist directory"""
-    dist_dir = Path("dist")
-    if dist_dir.exists():
-        print("Cleaning dist directory...")
-        shutil.rmtree(dist_dir)
+    """Clean dist and build directories"""
+    for dir_name in ["dist", "build"]:
+        dir_path = Path(dir_name)
+        if dir_path.exists():
+            print(f"Cleaning {dir_name} directory...")
+            shutil.rmtree(dir_path)
 
 
 def build():

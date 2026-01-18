@@ -197,6 +197,46 @@ uv run nicegui-pack \
 4. **硬體加速問題**：本版本 (v0.2.0+) 已預設停用 WebView2 硬體加速 (`--disable-gpu`) 以提升相容性。
 5. **防毒軟體**：檢查是否被防毒軟體 (如 SentinelOne, CrowdStrike) 靜默封鎖。
 
+---
+
+### 🔒 Windows 11 DLL 被封鎖 (RuntimeError: Failed to resolve)
+
+**問題**：應用程式啟動後出現類似以下錯誤：
+```
+Process Process-1:
+Traceback (most recent call last):
+  File "multiprocessing\process.py", line 313, in _bootstrap
+  File "multiprocessing\process.py", line 108, in run
+  File "nicegui\native\native_mode.py", line 50, in _open_window
+  ...
+  File "clr_loader\netfx.py", line 49, in _get_callable
+RuntimeError: Failed to resolve Python.Runtime.Loader.Initialize from ...\pythonnet\runtime\Python.Runtime.dll
+```
+
+或者應用程式只有背景程序但沒有視窗 (工作管理員顯示 2 個程序但無 UI)。
+
+**原因**：Windows 11 的「網路標記」(Mark of the Web) 安全機制會自動封鎖從網路下載的 `.dll` 檔案，導致應用程式無法載入必要的動態連結庫。
+
+**解決方案**：
+
+**方法一：使用 PowerShell 批量解除封鎖（推薦）**
+
+以「系統管理員身分」開啟 PowerShell，執行以下指令：
+
+```powershell
+Get-ChildItem -Path "C:\你的下載路徑\Income-Statement-App" -Recurse | Unblock-File
+```
+
+> ⚠️ 請將 `C:\你的下載路徑\Income-Statement-App` 替換為實際的應用程式路徑。
+
+**方法二：手動解除封鎖**
+
+1. 在檔案總管中找到 `Income-Statement-App` 資料夾
+2. 進入 `_internal\pythonnet\runtime\` 目錄
+3. 右鍵點擊 `Python.Runtime.dll` → **內容**
+4. 在「一般」標籤最下方勾選 **「解除封鎖」**
+5. 點擊 **確定**
+
 ## 授權 (License)
 
 MIT License
