@@ -10,6 +10,22 @@ from income_statement_app.ui.routers.home import register_routes
 
 
 def run() -> None:
+    # Handle missing streams in frozen/windowed mode to prevent Uvicorn crashes
+    # (AttributeError: 'NoneType' object has no attribute 'isatty')
+    if sys.stdout is None:
+        class NullWriter:
+            def write(self, text): pass
+            def flush(self): pass
+            def isatty(self): return False
+        sys.stdout = NullWriter()
+        
+    if sys.stderr is None:
+         class NullWriter:
+            def write(self, text): pass
+            def flush(self): pass
+            def isatty(self): return False
+         sys.stderr = NullWriter()
+
     # 1. Register Routes (and setup dependency graph)
     register_routes()
 
